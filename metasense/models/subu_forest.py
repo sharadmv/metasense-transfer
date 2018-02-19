@@ -1,10 +1,11 @@
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold
-from sklearn.metrics import mean_absolute_error
 from sklearn.multioutput import MultiOutputRegressor
 
-class SubuForest(object):
+from .model import Model
+
+class SubuForest(Model):
 
     def __init__(self):
         self.FEATURES = {2, 4, 6}
@@ -32,9 +33,3 @@ class SubuForest(object):
     def predict(self, X):
         preds = np.stack([model.predict(X) for model in self.models])
         return preds.mean(axis=0)
-
-    def score(self, X, y):
-        preds = self.predict(X)
-        mae = mean_absolute_error(y, preds, multioutput='raw_values')
-        cvmae = np.array(mae / y.mean())
-        return mae, cvmae
