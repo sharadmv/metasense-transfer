@@ -1,3 +1,4 @@
+import tqdm
 from argparse import ArgumentParser
 import numpy as np
 import joblib
@@ -52,41 +53,56 @@ def level1(out_dir):
                 if board in DATA[round_][location_]:
                     RESULTS[(round, location, board)].append((round_, location_))
 
-    results = pd.DataFrame(columns=[
+
+    differences = pd.DataFrame(columns=[
         'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
-    baselines = pd.DataFrame(columns=[
+    train_results = pd.DataFrame(columns=[
         'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
-    for file in tqdm.tqdm(model_dir.glob('*')):
+    test_results = pd.DataFrame(columns=[
+        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+    ])
+    for file in tqdm.tqdm(list(model_dir.glob('*'))):
         triple, model = joblib.load(file)
         tests = RESULTS[triple]
-        baseline = benchmark(model, triple)
+        train_result = benchmark(model, triple)
         if len(tests) > 0:
-            result  = baseline - np.stack([benchmark(model, test + (triple[-1],)) for test in tests]).mean(axis=0)
-            results = results.append({
+            test_result  = np.stack([benchmark(model, test + (triple[-1],)) for test in tests]).mean(axis=0)
+            difference = train_result - test_result
+            train_results = train_results.append({
                 'Model': triple,
-                'NO2 MAE': result[0, 0],
-                'O3 MAE': result[0, 1],
-                'NO2 CvMAE': result[1, 0],
-                'O3 CvMAE': result[1, 1],
+                'NO2 MAE': train_result[0, 0],
+                'O3 MAE': train_result[0, 1],
+                'NO2 CvMAE': train_result[1, 0],
+                'O3 CvMAE': train_result[1, 1],
             }, ignore_index=True)
-            baselines = baselines.append({
+            test_results = test_results.append({
                 'Model': triple,
-                'NO2 MAE': baseline[0, 0],
-                'O3 MAE': baseline[0, 1],
-                'NO2 CvMAE': baseline[1, 0],
-                'O3 CvMAE': baseline[1, 1],
+                'NO2 MAE': test_result[0, 0],
+                'O3 MAE': test_result[0, 1],
+                'NO2 CvMAE': test_result[1, 0],
+                'O3 CvMAE': test_result[1, 1],
             }, ignore_index=True)
-
-    with open(str(out_dir / 'level1' / 'results.csv'), 'w') as fp:
-        fp.write(results.to_csv())
-    with open(str(out_dir / 'level1' / 'results.tex'), 'w') as fp:
-        fp.write(results.to_latex())
-    with open(str(out_dir / 'level1' / 'baseline.csv'), 'w') as fp:
-        fp.write(baselines.to_csv())
-    with open(str(out_dir / 'level1' / 'baseline.tex'), 'w') as fp:
-        fp.write(baselines.to_latex())
+            differences = differences.append({
+                'Model': triple,
+                'NO2 MAE': difference[0, 0],
+                'O3 MAE': difference[0, 1],
+                'NO2 CvMAE': difference[1, 0],
+                'O3 CvMAE': difference[1, 1],
+            }, ignore_index=True)
+    with open(str(out_dir / 'level1' / 'train.csv'), 'w') as fp:
+        fp.write(train_results.to_csv())
+    with open(str(out_dir / 'level1' / 'train.tex'), 'w') as fp:
+        fp.write(train_results.to_latex())
+    with open(str(out_dir / 'level1' / 'test.csv'), 'w') as fp:
+        fp.write(test_results.to_csv())
+    with open(str(out_dir / 'level1' / 'test.tex'), 'w') as fp:
+        fp.write(test_results.to_latex())
+    with open(str(out_dir / 'level1' / 'difference.csv'), 'w') as fp:
+        fp.write(differences.to_csv())
+    with open(str(out_dir / 'level1' / 'difference.tex'), 'w') as fp:
+        fp.write(differences.to_latex())
 
 def level2(out_dir):
 
@@ -100,39 +116,54 @@ def level2(out_dir):
                     boards[board_id] = set()
                 boards[board_id].add((round, location))
 
-    results = pd.DataFrame(columns=[
+    differences = pd.DataFrame(columns=[
         'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
-    baselines = pd.DataFrame(columns=[
+    train_results = pd.DataFrame(columns=[
         'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
-    for model_file in tqdm.tqdm(model_dir.glob('*')):
+    test_results = pd.DataFrame(columns=[
+        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+    ])
+    for model_file in tqdm.tqdm(list(model_dir.glob('*'))):
         (board_id, train_config), model = joblib.load(model_file)
         test_config = list(boards[board_id] - train_config)[0]
-        baseline = benchmark(model, [t + (board_id,) for t in train_config])
-        result = baseline - benchmark(model, test_config + (board_id,))
-        results = results.append({
-            'Model': (board_id, train_config),
-            'NO2 MAE': result[0, 0],
-            'O3 MAE': result[0, 1],
-            'NO2 CvMAE': result[1, 0],
-            'O3 CvMAE': result[1, 1],
+        train_result = benchmark(model, [t + (board_id,) for t in train_config])
+        test_result = benchmark(model, test_config + (board_id,))
+        difference = train_result - test_result
+        train_results = train_results.append({
+            'Model': board_id,
+            'NO2 MAE': train_result[0, 0],
+            'O3 MAE': train_result[0, 1],
+            'NO2 CvMAE': train_result[1, 0],
+            'O3 CvMAE': train_result[1, 1],
         }, ignore_index=True)
-        baselines = baselines.append({
-            'Model': (board_id, train_config),
-            'NO2 MAE': baseline[0, 0],
-            'O3 MAE': baseline[0, 1],
-            'NO2 CvMAE': baseline[1, 0],
-            'O3 CvMAE': baseline[1, 1],
+        test_results = test_results.append({
+            'Model': board_id,
+            'NO2 MAE': test_result[0, 0],
+            'O3 MAE': test_result[0, 1],
+            'NO2 CvMAE': test_result[1, 0],
+            'O3 CvMAE': test_result[1, 1],
         }, ignore_index=True)
-    with open(str(out_dir / 'level2' / 'results.csv'), 'w') as fp:
-        fp.write(results.to_csv())
-    with open(str(out_dir / 'level2' / 'results.tex'), 'w') as fp:
-        fp.write(results.to_latex())
-    with open(str(out_dir / 'level2' / 'baseline.csv'), 'w') as fp:
-        fp.write(baselines.to_csv())
-    with open(str(out_dir / 'level2' / 'baseline.tex'), 'w') as fp:
-        fp.write(baselines.to_latex())
+        differences = differences.append({
+            'Model': board_id,
+            'NO2 MAE': difference[0, 0],
+            'O3 MAE': difference[0, 1],
+            'NO2 CvMAE': difference[1, 0],
+            'O3 CvMAE': difference[1, 1],
+        }, ignore_index=True)
+    with open(str(out_dir / 'level2' / 'train.csv'), 'w') as fp:
+        fp.write(train_results.to_csv())
+    with open(str(out_dir / 'level2' / 'train.tex'), 'w') as fp:
+        fp.write(train_results.to_latex())
+    with open(str(out_dir / 'level2' / 'test.csv'), 'w') as fp:
+        fp.write(test_results.to_csv())
+    with open(str(out_dir / 'level2' / 'test.tex'), 'w') as fp:
+        fp.write(test_results.to_latex())
+    with open(str(out_dir / 'level2' / 'difference.csv'), 'w') as fp:
+        fp.write(differences.to_csv())
+    with open(str(out_dir / 'level2' / 'difference.tex'), 'w') as fp:
+        fp.write(differences.to_latex())
 
 def level3(out_dir, seed):
     model_dir = out_dir / 'level3' / 'models'
@@ -145,40 +176,55 @@ def level3(out_dir, seed):
                     boards[board_id] = set()
                 boards[board_id].add((round, location))
 
-    results = pd.DataFrame(columns=[
+    differences = pd.DataFrame(columns=[
         'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
-    baselines = pd.DataFrame(columns=[
+    train_results = pd.DataFrame(columns=[
         'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
-    for model_file in tqdm.tqdm(model_dir.glob('*')):
+    test_results = pd.DataFrame(columns=[
+        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+    ])
+    for model_file in tqdm.tqdm(list(model_dir.glob('*'))):
         board_id, model = joblib.load(model_file)
         data = pd.concat([load(*(t[0], t[1], board_id)) for t in boards[board_id]])
         train_data, test_data = train_test_split(data, test_size=0.2, random_state=seed)
-        baseline = np.stack(model.score(train_data[X_features], train_data[Y_features]))
-        result = baseline - np.stack(model.score(test_data[X_features], test_data[Y_features]))
-        results = results.append({
+        train_result = np.stack(model.score(train_data[X_features], train_data[Y_features]))
+        test_result = np.stack(model.score(test_data[X_features], test_data[Y_features]))
+        difference = train_result - test_result
+        train_results = train_results.append({
             'Model': board_id,
-            'NO2 MAE': result[0, 0],
-            'O3 MAE': result[0, 1],
-            'NO2 CvMAE': result[1, 0],
-            'O3 CvMAE': result[1, 1],
+            'NO2 MAE': train_result[0, 0],
+            'O3 MAE': train_result[0, 1],
+            'NO2 CvMAE': train_result[1, 0],
+            'O3 CvMAE': train_result[1, 1],
         }, ignore_index=True)
-        baselines = baselines.append({
+        test_results = test_results.append({
             'Model': board_id,
-            'NO2 MAE': baseline[0, 0],
-            'O3 MAE': baseline[0, 1],
-            'NO2 CvMAE': baseline[1, 0],
-            'O3 CvMAE': baseline[1, 1],
+            'NO2 MAE': test_result[0, 0],
+            'O3 MAE': test_result[0, 1],
+            'NO2 CvMAE': test_result[1, 0],
+            'O3 CvMAE': test_result[1, 1],
         }, ignore_index=True)
-    with open(str(out_dir / 'level3' / 'results.csv'), 'w') as fp:
-        fp.write(results.to_csv())
-    with open(str(out_dir / 'level3' / 'results.tex'), 'w') as fp:
-        fp.write(results.to_latex())
-    with open(str(out_dir / 'level3' / 'baseline.csv'), 'w') as fp:
-        fp.write(baselines.to_csv())
-    with open(str(out_dir / 'level3' / 'baseline.tex'), 'w') as fp:
-        fp.write(baselines.to_latex())
+        differences = differences.append({
+            'Model': board_id,
+            'NO2 MAE': difference[0, 0],
+            'O3 MAE': difference[0, 1],
+            'NO2 CvMAE': difference[1, 0],
+            'O3 CvMAE': difference[1, 1],
+        }, ignore_index=True)
+    with open(str(out_dir / 'level3' / 'train.csv'), 'w') as fp:
+        fp.write(train_results.to_csv())
+    with open(str(out_dir / 'level3' / 'train.tex'), 'w') as fp:
+        fp.write(train_results.to_latex())
+    with open(str(out_dir / 'level3' / 'test.csv'), 'w') as fp:
+        fp.write(test_results.to_csv())
+    with open(str(out_dir / 'level3' / 'test.tex'), 'w') as fp:
+        fp.write(test_results.to_latex())
+    with open(str(out_dir / 'level3' / 'difference.csv'), 'w') as fp:
+        fp.write(differences.to_csv())
+    with open(str(out_dir / 'level3' / 'difference.tex'), 'w') as fp:
+        fp.write(differences.to_latex())
 
 if __name__ == "__main__":
     args = parse_args()
