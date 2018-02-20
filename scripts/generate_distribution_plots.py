@@ -67,7 +67,7 @@ for round in BOARDS:
     ROUND_NO2[round][1].set_title("Round %u - NO2" % round)
     ROUND_O3[round][1].set_title("Round %u - O3" % round)
     for location in BOARDS[round]:
-        data = load(round, location, BOARDS[round][location])
+        data = pd.concat(load(round, location, BOARDS[round][location]))
         temperature = data['temperature'] * 9 / 5 + 32
         no2 = data[data["epa-no2"] < data["epa-no2"].quantile(0.99)]["epa-no2"]
         o3 = data[data["epa-o3"] < data["epa-o3"].quantile(0.99)]["epa-o3"]

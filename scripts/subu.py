@@ -1,3 +1,4 @@
+import tqdm
 import pandas as pd
 from argparse import ArgumentParser
 import joblib
@@ -5,8 +6,8 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 from metasense import BOARD_CONFIGURATION as DATA
 from metasense.data import load
+from deepx import nn
 from metasense.models import SubuForest, Linear, NeuralNetwork
-from deepx.nn import *
 
 X_features = ['no2', 'o3', 'co', 'temperature', 'humidity', 'pressure']
 Y_features = ['epa-no2', 'epa-o3']
@@ -26,11 +27,11 @@ def level1(out_dir):
         for location in DATA[round]:
             for board_id in DATA[round][location]:
                 print("Training: Round %u - %s - Board %u" % (round, location, board_id))
-                data = load(round, location, board_id)
+                train, _ = load(round, location, board_id)
                 joblib.dump(
                     (
                         (round, location, board_id),
-                        Model().fit(data[X_features], data[Y_features])
+                        Model().fit(train[X_features], train[Y_features])
                     ), out_dir / 'level1' / 'models' / ('round%u_%s_board%u.pkl' % (round, location, board_id))
                 )
 
@@ -43,12 +44,12 @@ def level2(out_dir):
                 if board_id not in boards:
                     boards[board_id] = set()
                 boards[board_id].add((round, location))
-    for board_id in boards:
+    for board_id in tqdm.tqdm(boards):
         if len(boards[board_id]) != 3:
             continue
         for test_config in boards[board_id]:
             train_config = boards[board_id] - {test_config}
-            data = pd.concat([load(*(t[0], t[1], board_id)) for t in train_config])
+            data = pd.concat([load(*(t[0], t[1], board_id))[0] for t in train_config])
             # test_data = load(*(test_config[0], test_config[1], board_id))
             joblib.dump(
                 (
@@ -66,9 +67,9 @@ def level3(out_dir, seed):
                 if board_id not in boards:
                     boards[board_id] = set()
                 boards[board_id].add((round, location))
-    for board_id in boards:
-        data = pd.concat([load(*(t[0], t[1], board_id)) for t in boards[board_id]])
-        train_data, test_data = train_test_split(data, test_size=0.2, random_state=seed)
+    for board_id in tqdm.tqdm(boards):
+        data = [load(*(t[0], t[1], board_id)) for t in boards[board_id]]
+        train_data = pd.concat([t[0] for t in data])
         joblib.dump(
             (
                 board_id,
@@ -85,9 +86,9 @@ if __name__ == "__main__":
     elif args.model == 'linear':
         Model = Linear
     elif args.model == 'nn-2':
-        Model = lambda: NeuralNetwork(Relu(6, 200) >> Relu(200) >> Linear(2))
+        Model = lambda: NeuralNetwork(nn.Relu(6, 200) >> nn.Relu(200) >> nn.Linear(2))
     elif args.model == 'nn-4':
-        Model = lambda: NeuralNetwork(Relu(6, 200) >> Relu(200) >> Relu(200) >> Relu(200) >> Linear(2))
+        Model = lambda: NeuralNetwork(nn.Relu(6, 200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Linear(2))
 
     if args.level1:
         level1(out_dir)

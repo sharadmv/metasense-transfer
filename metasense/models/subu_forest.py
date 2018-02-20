@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import KFold
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.metrics import mean_absolute_error
 
 from .model import Model
 

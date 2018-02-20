@@ -26,9 +26,9 @@ def parse_args():
 
 def benchmark(model, test):
     if isinstance(test, list):
-        data = pd.concat([load(*t) for t in test])
+        data = pd.concat([load(*t)[1] for t in test])
     else:
-        data = load(*test)
+        data = load(*test)[1]
     score = model.score(data[X_features], data[Y_features])
     return np.stack(score)
 
@@ -132,21 +132,21 @@ def level2(out_dir):
         test_result = benchmark(model, test_config + (board_id,))
         difference = train_result - test_result
         train_results = train_results.append({
-            'Model': board_id,
+            'Model': (board_id, train_config),
             'NO2 MAE': train_result[0, 0],
             'O3 MAE': train_result[0, 1],
             'NO2 CvMAE': train_result[1, 0],
             'O3 CvMAE': train_result[1, 1],
         }, ignore_index=True)
         test_results = test_results.append({
-            'Model': board_id,
+            'Model': (board_id, train_config),
             'NO2 MAE': test_result[0, 0],
             'O3 MAE': test_result[0, 1],
             'NO2 CvMAE': test_result[1, 0],
             'O3 CvMAE': test_result[1, 1],
         }, ignore_index=True)
         differences = differences.append({
-            'Model': board_id,
+            'Model': (board_id, train_config),
             'NO2 MAE': difference[0, 0],
             'O3 MAE': difference[0, 1],
             'NO2 CvMAE': difference[1, 0],
@@ -187,8 +187,9 @@ def level3(out_dir, seed):
     ])
     for model_file in tqdm.tqdm(list(model_dir.glob('*'))):
         board_id, model = joblib.load(model_file)
-        data = pd.concat([load(*(t[0], t[1], board_id)) for t in boards[board_id]])
-        train_data, test_data = train_test_split(data, test_size=0.2, random_state=seed)
+        data = [load(*(t[0], t[1], board_id)) for t in boards[board_id]]
+        train_data = pd.concat([t[0] for t in data])
+        test_data = pd.concat([t[1] for t in data])
         train_result = np.stack(model.score(train_data[X_features], train_data[Y_features]))
         test_result = np.stack(model.score(test_data[X_features], test_data[Y_features]))
         difference = train_result - test_result
