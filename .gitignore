@@ -1,4 +1,6 @@
 # Byte-compiled / optimized / DLL files
+*.pkl
+events.out.tfevents*
 __pycache__/
 *.py[cod]
 *$py.class
