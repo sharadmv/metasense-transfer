@@ -10,5 +10,8 @@ def load(round, location, board_id, root_dir=Path('data/final'), seed=0):
     data['co']  = data['co-A']  - data['co-W']
     data['epa-no2'] *= 1000
     data['epa-o3'] *= 1000
+    data['board'] = board_id
+    data['location'] = location
+    data['round'] = round
     train, test = train_test_split(data, test_size=0.2, random_state=seed)
     return train, test

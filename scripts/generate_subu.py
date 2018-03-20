@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from collections import OrderedDict
 
 from metasense import BOARD_CONFIGURATION as DATA
 from metasense.data import load
@@ -17,6 +18,7 @@ Y_features = ['epa-no2', 'epa-o3']
 
 def parse_args():
     argparser = ArgumentParser()
+    argparser.add_argument('--level0', action='store_true')
     argparser.add_argument('--level1', action='store_true')
     argparser.add_argument('--level2', action='store_true')
     argparser.add_argument('--level3', action='store_true')
@@ -24,11 +26,12 @@ def parse_args():
     argparser.add_argument('--seed', type=int, default=0)
     return argparser.parse_args()
 
-def benchmark(model, test):
+def benchmark(model, test, train=False):
+    idx = 0 if train else 1
     if isinstance(test, list):
-        data = pd.concat([load(*t)[1] for t in test])
+        data = pd.concat([load(*t)[idx] for t in test])
     else:
-        data = load(*test)[1]
+        data = load(*test)[idx]
     score = model.score(data[X_features], data[Y_features])
     return np.stack(score)
 
@@ -37,6 +40,63 @@ def get_triples():
         for location in DATA[round]:
             for board in DATA[round][location]:
                 yield (round, location, board)
+
+def level0(out_dir):
+
+    model_dir = out_dir / 'level1' / 'models'
+    (out_dir / 'level0').mkdir(exist_ok=True)
+
+    differences = pd.DataFrame(columns=[
+        'Model', 'Testing Location', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+    ])
+    train_results = pd.DataFrame(columns=[
+        'Model', 'Testing Location', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+    ])
+    test_results = pd.DataFrame(columns=[
+        'Model', 'Testing Location', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+    ])
+    for file in tqdm.tqdm(list(model_dir.glob('*'))):
+        triple, model = joblib.load(file)
+        train_result = benchmark(model, triple, train=True)
+        test_result = benchmark(model, triple, train=False)
+        difference = train_result - test_result
+        train_results = train_results.append({
+            'Model': triple,
+            'Testing Location': triple,
+            'NO2 MAE': train_result[0, 0],
+            'O3 MAE': train_result[0, 1],
+            'NO2 CvMAE': train_result[1, 0],
+            'O3 CvMAE': train_result[1, 1],
+        }, ignore_index=True)
+        test_results = test_results.append(({
+            'Model': triple,
+            'Testing Location': triple,
+            'NO2 MAE': test_result[0, 0],
+            'O3 MAE': test_result[0, 1],
+            'NO2 CvMAE': test_result[1, 0],
+            'O3 CvMAE': test_result[1, 1],
+        }), ignore_index=True)
+        differences = differences.append(({
+            'Model': triple,
+            'Testing Location': triple,
+            'NO2 MAE': difference[0, 0],
+            'O3 MAE': difference[0, 1],
+            'NO2 CvMAE': difference[1, 0],
+            'O3 CvMAE': difference[1, 1],
+            }), ignore_index=True)
+    with open(str(out_dir / 'level0' / 'train.csv'), 'w') as fp:
+        fp.write(train_results.sort_values(['Model', 'Testing Location']).to_csv())
+    with open(str(out_dir / 'level0' / 'train.tex'), 'w') as fp:
+        fp.write(train_results.sort_values(['Model', 'Testing Location']).to_latex())
+    with open(str(out_dir / 'level0' / 'test.csv'), 'w') as fp:
+        fp.write(test_results.sort_values(['Model', 'Testing Location']).to_csv())
+    with open(str(out_dir / 'level0' / 'test.tex'), 'w') as fp:
+        fp.write(test_results.sort_values(['Model', 'Testing Location']).to_latex())
+    with open(str(out_dir / 'level0' / 'difference.csv'), 'w') as fp:
+        fp.write(differences.sort_values(['Model', 'Testing Location']).to_csv())
+    with open(str(out_dir / 'level0' / 'difference.tex'), 'w') as fp:
+        fp.write(differences.sort_values(['Model', 'Testing Location']).to_latex())
+
 
 def level1(out_dir):
     RESULTS = {}
@@ -55,54 +115,58 @@ def level1(out_dir):
 
 
     differences = pd.DataFrame(columns=[
-        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+        'Model', 'Testing Location', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
     train_results = pd.DataFrame(columns=[
-        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+        'Model', 'Testing Location', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
     test_results = pd.DataFrame(columns=[
-        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+        'Model', 'Testing Location', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
     for file in tqdm.tqdm(list(model_dir.glob('*'))):
         triple, model = joblib.load(file)
         tests = RESULTS[triple]
         train_result = benchmark(model, triple)
         if len(tests) > 0:
-            test_result  = np.stack([benchmark(model, test + (triple[-1],)) for test in tests]).mean(axis=0)
-            difference = train_result - test_result
-            train_results = train_results.append({
-                'Model': triple,
-                'NO2 MAE': train_result[0, 0],
-                'O3 MAE': train_result[0, 1],
-                'NO2 CvMAE': train_result[1, 0],
-                'O3 CvMAE': train_result[1, 1],
-            }, ignore_index=True)
-            test_results = test_results.append({
-                'Model': triple,
-                'NO2 MAE': test_result[0, 0],
-                'O3 MAE': test_result[0, 1],
-                'NO2 CvMAE': test_result[1, 0],
-                'O3 CvMAE': test_result[1, 1],
-            }, ignore_index=True)
-            differences = differences.append({
-                'Model': triple,
-                'NO2 MAE': difference[0, 0],
-                'O3 MAE': difference[0, 1],
-                'NO2 CvMAE': difference[1, 0],
-                'O3 CvMAE': difference[1, 1],
-            }, ignore_index=True)
+            test_result = zip(tests, [benchmark(model, test + (triple[-1],)) for test in tests])
+            for test, tr in test_result:
+                difference = train_result - tr
+                train_results = train_results.append({
+                    'Model': triple,
+                    'Testing Location': test,
+                    'NO2 MAE': train_result[0, 0],
+                    'O3 MAE': train_result[0, 1],
+                    'NO2 CvMAE': train_result[1, 0],
+                    'O3 CvMAE': train_result[1, 1],
+                }, ignore_index=True)
+                test_results = test_results.append(({
+                    'Model': triple,
+                    'Testing Location': test,
+                    'NO2 MAE': tr[0, 0],
+                    'O3 MAE': tr[0, 1],
+                    'NO2 CvMAE': tr[1, 0],
+                    'O3 CvMAE': tr[1, 1],
+                }), ignore_index=True)
+                differences = differences.append(({
+                    'Model': triple,
+                    'Testing Location': test,
+                    'NO2 MAE': difference[0, 0],
+                    'O3 MAE': difference[0, 1],
+                    'NO2 CvMAE': difference[1, 0],
+                    'O3 CvMAE': difference[1, 1],
+                }), ignore_index=True)
     with open(str(out_dir / 'level1' / 'train.csv'), 'w') as fp:
-        fp.write(train_results.to_csv())
+        fp.write(train_results.sort_values(['Model', 'Testing Location']).to_csv())
     with open(str(out_dir / 'level1' / 'train.tex'), 'w') as fp:
-        fp.write(train_results.to_latex())
+        fp.write(train_results.sort_values(['Model', 'Testing Location']).to_latex())
     with open(str(out_dir / 'level1' / 'test.csv'), 'w') as fp:
-        fp.write(test_results.to_csv())
+        fp.write(test_results.sort_values(['Model', 'Testing Location']).to_csv())
     with open(str(out_dir / 'level1' / 'test.tex'), 'w') as fp:
-        fp.write(test_results.to_latex())
+        fp.write(test_results.sort_values(['Model', 'Testing Location']).to_latex())
     with open(str(out_dir / 'level1' / 'difference.csv'), 'w') as fp:
-        fp.write(differences.to_csv())
+        fp.write(differences.sort_values(['Model', 'Testing Location']).to_csv())
     with open(str(out_dir / 'level1' / 'difference.tex'), 'w') as fp:
-        fp.write(differences.to_latex())
+        fp.write(differences.sort_values(['Model', 'Testing Location']).to_latex())
 
 def level2(out_dir):
 
@@ -231,6 +295,8 @@ if __name__ == "__main__":
     args = parse_args()
     out_dir = Path('results') / args.model
 
+    if args.level0:
+        level0(out_dir)
     if args.level1:
         level1(out_dir)
     if args.level2:

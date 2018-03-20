@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 from metasense.data import load
 
-BOARDS = {
+BOARDS = OrderedDict({
     1: OrderedDict({
         'elcajon': 11,
         'donovan': 19,
@@ -15,14 +15,14 @@ BOARDS = {
     2: OrderedDict({
         'elcajon': 17,
         'donovan': 15,
-        # 'shafter': 11,
+        'shafter': 11,
     }),
     3: OrderedDict({
         'elcajon': 15,
         'donovan': 11,
-        # 'shafter': 17,
+        'shafter': 17,
     })
-}
+})
 DATA = {}
 
 ROUND_PLOTS = {
@@ -71,12 +71,12 @@ for round in BOARDS:
         temperature = data['temperature'] * 9 / 5 + 32
         no2 = data[data["epa-no2"] < data["epa-no2"].quantile(0.99)]["epa-no2"]
         o3 = data[data["epa-o3"] < data["epa-o3"].quantile(0.99)]["epa-o3"]
-        sns.distplot(temperature, ax=ROUND_PLOTS[round][1], label=location, axlabel='Temperature (F)')
-        sns.distplot(temperature, ax=LOCATION_PLOTS[location][1], label="Round %u" % round, axlabel='Temperature (F)')
-        sns.distplot(no2, ax=ROUND_NO2[round][1], label=location, axlabel='NO2 (ppb)')
-        sns.distplot(o3, ax=ROUND_O3[round][1], label=location, axlabel='O3 (ppb)')
-        sns.distplot(no2, ax=LOCATION_NO2[location][1], label="Round %u" % round, axlabel='NO2 (ppb)')
-        sns.distplot(o3, ax=LOCATION_O3[location][1], label="Round %u" % round, axlabel='O3 (ppb)')
+        sns.distplot(temperature, ax=ROUND_PLOTS[round][1], label=location, axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
+        sns.distplot(temperature, ax=LOCATION_PLOTS[location][1], label="Round %u" % round, axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
+        sns.distplot(no2, ax=ROUND_NO2[round][1], label=location, axlabel='NO2 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
+        sns.distplot(o3, ax=ROUND_O3[round][1], label=location, axlabel='O3 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
+        sns.distplot(no2, ax=LOCATION_NO2[location][1], label="Round %u" % round, axlabel='NO2 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
+        sns.distplot(o3, ax=LOCATION_O3[location][1], label="Round %u" % round, axlabel='O3 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
     ROUND_PLOTS[round][1].legend(loc='best')
     ROUND_NO2[round][1].legend(loc='best')
     ROUND_O3[round][1].legend(loc='best')

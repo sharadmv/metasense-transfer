@@ -9,11 +9,11 @@ BOARD_CONFIGURATION = {
     2: {
         'elcajon': {17, 19, 21},
         'donovan': {15, 18, 20},
-        'shafter': {},
+        'shafter': {11, 12, 13},
     },
     3: {
         'elcajon': {15, 18, 20},
         'donovan': {11, 12, 13},
-        'shafter': {},
+        'shafter': {17, 19, 21},
     }
 }
