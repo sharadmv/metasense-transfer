@@ -18,11 +18,11 @@ Y_features = ['epa-no2', 'epa-o3']
 
 def parse_args():
     argparser = ArgumentParser()
+    argparser.add_argument('name')
     argparser.add_argument('--level0', action='store_true')
     argparser.add_argument('--level1', action='store_true')
     argparser.add_argument('--level2', action='store_true')
     argparser.add_argument('--level3', action='store_true')
-    argparser.add_argument('--model', default='subu')
     argparser.add_argument('--seed', type=int, default=0)
     return argparser.parse_args()
 
@@ -32,7 +32,7 @@ def benchmark(model, test, train=False):
         data = pd.concat([load(*t)[idx] for t in test])
     else:
         data = load(*test)[idx]
-    score = model.score(data[X_features], data[Y_features])
+    score = model.score(data[model.features], data[Y_features])
     return np.stack(score)
 
 def get_triples():
@@ -102,6 +102,7 @@ def level1(out_dir):
     RESULTS = {}
 
     model_dir = out_dir / 'level1' / 'models'
+    (out_dir / 'level1').mkdir(exist_ok=True)
 
     for round, location, board in get_triples():
         if (round, location, board) not in RESULTS:
@@ -171,6 +172,7 @@ def level1(out_dir):
 def level2(out_dir):
 
     model_dir = out_dir / 'level2' / 'models'
+    (out_dir / 'level2').mkdir(exist_ok=True)
 
     boards = {}
     for round in DATA:
@@ -231,6 +233,7 @@ def level2(out_dir):
 
 def level3(out_dir, seed):
     model_dir = out_dir / 'level3' / 'models'
+    (out_dir / 'level3').mkdir(exist_ok=True)
 
     boards = {}
     for round in DATA:
@@ -293,7 +296,8 @@ def level3(out_dir, seed):
 
 if __name__ == "__main__":
     args = parse_args()
-    out_dir = Path('results') / args.model
+    out_dir = Path('results') / args.name
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     if args.level0:
         level0(out_dir)

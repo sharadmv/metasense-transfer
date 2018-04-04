@@ -4,6 +4,9 @@ from sklearn.metrics import mean_absolute_error
 
 class Model(object, metaclass=ABCMeta):
 
+    def __init__(self, features):
+        self.features = features
+
     @abstractmethod
     def fit(self, X, y):
         pass

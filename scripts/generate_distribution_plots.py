@@ -88,6 +88,7 @@ for location in LOCATION_O3:
     LOCATION_PLOTS[location][1].legend(loc='best')
 
 out_dir = Path('results') / 'distributions'
+out_dir.mkdir(exist_ok=True, parents=True)
 
 for round, plot in ROUND_PLOTS.items():
     plot[0].savefig(str(out_dir / ('round%u_temperature.png' % round)), bbox_inches='tight')

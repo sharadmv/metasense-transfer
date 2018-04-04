@@ -14,14 +14,16 @@ Y_features = ['epa-no2', 'epa-o3']
 
 def parse_args():
     argparser = ArgumentParser()
+    argparser.add_argument('name')
     argparser.add_argument('--level1', action='store_true')
     argparser.add_argument('--level2', action='store_true')
     argparser.add_argument('--level3', action='store_true')
     argparser.add_argument('--model', default='subu')
+    argparser.add_argument('--ignore-feature', type=str, action='append')
     argparser.add_argument('--seed', type=int, default=0)
     return argparser.parse_args()
 
-def level1(out_dir):
+def level1(out_dir, X_features):
     (out_dir / 'level1' / 'models').mkdir(exist_ok=True, parents=True)
     for round in DATA:
         for location in DATA[round]:
@@ -31,11 +33,11 @@ def level1(out_dir):
                 joblib.dump(
                     (
                         (round, location, board_id),
-                        Model().fit(train[X_features], train[Y_features])
+                        Model(X_features).fit(train[X_features], train[Y_features])
                     ), out_dir / 'level1' / 'models' / ('round%u_%s_board%u.pkl' % (round, location, board_id))
                 )
 
-def level2(out_dir):
+def level2(out_dir, X_features):
     (out_dir / 'level2' / 'models').mkdir(exist_ok=True, parents=True)
     boards = {}
     for round in DATA:
@@ -54,11 +56,11 @@ def level2(out_dir):
             joblib.dump(
                 (
                     (board_id, train_config),
-                    Model().fit(data[X_features], data[Y_features])
+                    Model(X_features).fit(data[X_features], data[Y_features])
                 ), out_dir / 'level2' / 'models' / ('board%u_%s.pkl' % (board_id, '-'.join(map(str, list(train_config)))))
             )
 
-def level3(out_dir, seed):
+def level3(out_dir, X_features, seed):
     (out_dir / 'level3' / 'models').mkdir(exist_ok=True, parents=True)
     boards = {}
     for round in DATA:
@@ -73,26 +75,30 @@ def level3(out_dir, seed):
         joblib.dump(
             (
                 board_id,
-                Model().fit(train_data[X_features], train_data[Y_features])
+                Model(X_features).fit(train_data[X_features], train_data[Y_features])
             ), out_dir / 'level3' / 'models' / ('board%u.pkl' % board_id)
         )
+
 if __name__ == "__main__":
     args = parse_args()
-    out_dir = Path('results') / args.model
+    out_dir = Path('results') / args.name
 
     out_dir.mkdir(exist_ok=True, parents=True)
+    features = X_features[:]
+    for feature in args.ignore_feature:
+        features.remove(feature)
     if args.model == 'subu':
         Model = SubuForest
     elif args.model == 'linear':
         Model = Linear
     elif args.model == 'nn-2':
-        Model = lambda: NeuralNetwork(nn.Relu(6, 200) >> nn.Relu(200) >> nn.Linear(2))
+        Model = lambda: NeuralNetwork(nn.Relu(len(features), 200) >> nn.Relu(200) >> nn.Linear(2))
     elif args.model == 'nn-4':
-        Model = lambda: NeuralNetwork(nn.Relu(6, 200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Linear(2))
+        Model = lambda: NeuralNetwork(nn.Relu(len(features), 200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Linear(2))
 
     if args.level1:
-        level1(out_dir)
+        level1(out_dir, features)
     if args.level2:
-        level2(out_dir)
+        level2(out_dir, features)
     if args.level3:
-        level3(out_dir, args.seed)
+        level3(out_dir, features, args.seed)

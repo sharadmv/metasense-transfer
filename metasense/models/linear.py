@@ -5,7 +5,8 @@ from .model import Model
 
 class Linear(Model):
 
-    def __init__(self):
+    def __init__(self, features):
+        super(Linear, self).__init__(features)
         self.model = LinearRegression()
 
     def fit(self, X, y):

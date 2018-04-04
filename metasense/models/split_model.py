@@ -8,7 +8,7 @@ from .model import Model
 
 class SplitModel(Model):
 
-    def __init__(self, sensor_models, calibration_model, lr=1e-4, batch_size=20, log_dir=None):
+    def __init__(self, sensor_models, calibration_model, lr=1e-4, batch_size=20, log_dir=None, **kwargs):
         self.graph = T.core.Graph()
         self.log_dir = log_dir
         with self.graph.as_default():
