@@ -18,10 +18,10 @@ Y_features = ['epa-no2', 'epa-o3']
 
 def parse_args():
     argparser = ArgumentParser()
+    argparser.add_argument('name')
     argparser.add_argument('--level1', action='store_true')
     argparser.add_argument('--level2', action='store_true')
     argparser.add_argument('--level3', action='store_true')
-    argparser.add_argument('--model', default='split')
     argparser.add_argument('--seed', type=int, default=0)
     return argparser.parse_args()
 
@@ -65,7 +65,7 @@ def level1(out_dir):
         if (round, location, board) not in RESULTS:
             RESULTS[(round, location, board)] = []
         for round_ in DATA:
-            for location_ in DATA[round]:
+            for location_ in DATA[round_]:
                 if (round, location) == (round_, location_):
                     continue
                 if board in DATA[round_][location_]:
@@ -120,11 +120,6 @@ def level1(out_dir):
 
 if __name__ == "__main__":
     args = parse_args()
-    out_dir = Path('results') / args.model
+    out_dir = Path('results') / args.name
 
-    if args.level1:
-        level1(out_dir)
-    if args.level2:
-        level2(out_dir)
-    if args.level3:
-        level3(out_dir, args.seed)
+    level1(out_dir)

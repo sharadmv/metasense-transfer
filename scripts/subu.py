@@ -19,7 +19,7 @@ def parse_args():
     argparser.add_argument('--level2', action='store_true')
     argparser.add_argument('--level3', action='store_true')
     argparser.add_argument('--model', default='subu')
-    argparser.add_argument('--ignore-feature', type=str, action='append')
+    argparser.add_argument('--ignore-feature', type=str, action='append', default=[])
     argparser.add_argument('--seed', type=int, default=0)
     return argparser.parse_args()
 
@@ -92,9 +92,9 @@ if __name__ == "__main__":
     elif args.model == 'linear':
         Model = Linear
     elif args.model == 'nn-2':
-        Model = lambda: NeuralNetwork(nn.Relu(len(features), 200) >> nn.Relu(200) >> nn.Linear(2))
+        Model = lambda features, : NeuralNetwork(features, nn.Relu(len(features), 200) >> nn.Relu(200) >> nn.Linear(2))
     elif args.model == 'nn-4':
-        Model = lambda: NeuralNetwork(nn.Relu(len(features), 200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Relu(200) >> nn.Linear(2))
+        Model = lambda features: NeuralNetwork(features, nn.Relu(len(features), 500) >> nn.Relu(500) >> nn.Relu(500) >> nn.Relu(500) >> nn.Linear(2))
 
     if args.level1:
         level1(out_dir, features)

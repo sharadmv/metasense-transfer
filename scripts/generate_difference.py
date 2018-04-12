@@ -9,6 +9,8 @@ from argparse import ArgumentParser
 def parse_args():
     argparser = ArgumentParser()
     argparser.add_argument('path')
+    argparser.add_argument('--models', nargs='+')
+    argparser.add_argument('out')
 
     return argparser.parse_args()
 
@@ -23,21 +25,22 @@ MODELS = ['linear', 'nn-2', 'nn-4', 'subu']
 if __name__ == "__main__":
     args = parse_args()
     path = Path(args.path)
-    all_data = pd.concat([load_data(model, path / model / 'level1' / 'difference.csv') for model in MODELS])
+    out = Path(args.out)
+    all_data = pd.concat([load_data(model, path / model / 'level1' / 'difference.csv') for model in args.models])
 
     fig = plt.figure()
     sns.boxplot(data=all_data, x='Location', y='NO2 MAE', hue='Predictor')
     fig.suptitle('NO2 MAE')
-    fig.savefig(str(path / 'no2mae_diff.png'), bbox_inches='tight')
+    fig.savefig(str(out / 'no2mae_diff.png'), bbox_inches='tight')
     fig = plt.figure()
     sns.boxplot(data=all_data, x='Location', y='O3 MAE', hue='Predictor')
     fig.suptitle('O3 MAE')
-    fig.savefig(str(path / 'o3mae_diff.png'), bbox_inches='tight')
+    fig.savefig(str(out / 'o3mae_diff.png'), bbox_inches='tight')
     fig = plt.figure()
     sns.boxplot(data=all_data, x='Location', y='NO2 CvMAE', hue='Predictor')
     fig.suptitle('NO2 CvMAE')
-    fig.savefig(str(path / 'no2cvmae_diff.png'), bbox_inches='tight')
+    fig.savefig(str(out / 'no2cvmae_diff.png'), bbox_inches='tight')
     fig = plt.figure()
     sns.boxplot(data=all_data, x='Location', y='O3 CvMAE', hue='Predictor')
     fig.suptitle('O3 CvMAE')
-    fig.savefig(str(path / 'o3cvmae_diff.png'), bbox_inches='tight')
+    fig.savefig(str(out / 'o3cvmae_diff.png'), bbox_inches='tight')

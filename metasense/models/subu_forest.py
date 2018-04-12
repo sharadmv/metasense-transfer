@@ -8,8 +8,9 @@ from .model import Model
 
 class SubuForest(Model):
 
-    def __init__(self):
-        self.FEATURES = {2, 4, 6}
+    def __init__(self, features):
+        super(SubuForest, self).__init__(features)
+        self.FEATURES = {2, 4, len(features)}
         self.folds = KFold(5)
         self.models = []
 

@@ -32,7 +32,11 @@ def benchmark(model, test, train=False):
         data = pd.concat([load(*t)[idx] for t in test])
     else:
         data = load(*test)[idx]
-    score = model.score(data[model.features], data[Y_features])
+    if hasattr(model, 'features') and model.features is not None:
+        features = model.features
+    else:
+        features = X_features
+    score = model.score(data[features], data[Y_features])
     return np.stack(score)
 
 def get_triples():
@@ -108,7 +112,7 @@ def level1(out_dir):
         if (round, location, board) not in RESULTS:
             RESULTS[(round, location, board)] = []
         for round_ in DATA:
-            for location_ in DATA[round]:
+            for location_ in DATA[round_]:
                 if (round, location) == (round_, location_):
                     continue
                 if board in DATA[round_][location_]:
