@@ -3,8 +3,16 @@ from metasense import BOARD_CONFIGURATION as CONFIG
 
 COMMAND = """set -ev;
 mkdir -p results/{server_name}/models
+mkdir -p results/{server_name}/subu
+mkdir -p results/{server_name}/linear
+mkdir -p results/{server_name}/nn-2
+mkdir -p results/{server_name}/nn-4
 tmux new-session -s {server_name} -n start -d
 {commands}
+python scripts/plot_split.py results/{server_name}/linear results2/linear results/{server_name}/models/*
+python scripts/plot_split.py results/{server_name}/nn-2 results2/nn-2 results/{server_name}/models/*
+python scripts/plot_split.py results/{server_name}/nn-4 results2/nn-4 results/{server_name}/models/*
+python scripts/plot_split.py results/{server_name}/subu results2/subu results/{server_name}/models/*
 """
 
 COMMAND_TEMPLATE = """tmux new-window -t {server_name}:{i} -n {name} 'bash -i'
