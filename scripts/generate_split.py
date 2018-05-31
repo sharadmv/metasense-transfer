@@ -13,7 +13,7 @@ from metasense.data import load
 
 
 sensor_features = ['no2', 'o3', 'co']
-env_features = ['temperature', 'humidity', 'pressure']
+env_features = ['temperature', 'absolute-humidity', 'pressure']
 Y_features = ['epa-no2', 'epa-o3']
 
 def parse_args():
@@ -59,7 +59,7 @@ def level1(out_dir):
     RESULTS = {}
 
     (out_dir / 'level1').mkdir(exist_ok=True, parents=True)
-    model = joblib.load(out_dir / 'models' / 'model.pkl')
+    model = joblib.load(out_dir / 'models' / 'model_latest.pkl')
 
     for round, location, board in get_triples():
         if (round, location, board) not in RESULTS:

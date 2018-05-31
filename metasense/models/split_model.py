@@ -1,3 +1,5 @@
+import random
+import joblib
 import pickle
 import tqdm
 import numpy as np
@@ -26,8 +28,11 @@ class SplitModel(Model):
             self.board = T.placeholder(T.core.int32, [None])
             self.boards = T.transpose(T.pack([self.board, T.range(T.shape(self.board)[0])]))
             self.rep = T.gather_nd(T.pack([sensor_model(self.sensors) for sensor_model in self.sensor_models]), self.boards)
+            self.rep_ = T.placeholder(T.floatx(), [None, self.rep.get_shape()[-1]])
             rep_env = T.concat([self.rep, self.env], -1)
+            rep_env_ = T.concat([self.rep_, self.env], -1)
             self.y_ = self.calibration_model(rep_env)
+            self.y_rep = self.calibration_model(rep_env_)
             self.y = T.placeholder(T.floatx(), [None, 2])
             self.loss = T.mean((self.y - self.y_) ** 2)
             self.mae = T.mean(T.abs(self.y - self.y_))
@@ -38,7 +43,7 @@ class SplitModel(Model):
 
         self.session = T.interactive_session(graph=self.graph)
 
-    def fit(self, sensor, env, board, y, n_iters=2000000, seed=0):
+    def fit(self, sensor, env, board, y, n_iters=2000000, seed=0, dump_every=None):
         sensor, env, board, y = np.array(sensor), np.array(env), np.array(board), np.array(y)
         sensor_train, sensor_valid, env_train, env_valid, board_train, board_valid, y_train, y_valid = train_test_split(sensor, env, board, y, test_size=0.2, random_state=seed)
         N = sensor_train.shape[0]
@@ -48,7 +53,7 @@ class SplitModel(Model):
         else:
             writer = None
         for i in tqdm.trange(n_iters):
-            idx = np.random.permutation(N)[:self.batch_size]
+            idx = random.sample(range(N), self.batch_size)
             if writer is None:
                 _, loss = self.session.run([self.train_op, self.loss], {
                     self.sensors: sensor_train[idx],
@@ -64,12 +69,15 @@ class SplitModel(Model):
                     self.y: y_train[idx],
                 })
                 writer.add_summary(summary, i)
-            if i % 10000 == 0:
+            if i % 1000 == 0:
                 score = self.score(sensor_valid, env_valid, board_valid, y_valid)
                 if score[0].mean() < best[1]:
                     best = (
                         self.get_weights(), score[0].mean()
                     )
+                    if dump_every is not None:
+                        dir, _ = dump_every
+                        joblib.dump(self, dir)
                     print("New Best:", best[1], score)
         score = self.score(sensor_valid, env_valid, board_valid, y_valid)
         if score[0].mean() < best[1]:
@@ -94,6 +102,19 @@ class SplitModel(Model):
             T.core.assign(a, b) for sensor in sensor_weights.keys()
             for a, b in zip(self.sensor_map[sensor].get_parameters(), sensor_weights[sensor])
         ])
+
+    def representation(self, sensor, board):
+        return self.session.run(self.rep, {
+            self.sensors: sensor,
+            self.board: [self.board_map[b] for b in board],
+        })
+
+    def calibrate(self, rep, env):
+        return self.session.run(self.y_rep, {
+            self.rep_: rep,
+            self.env: env
+        })
+
 
     def predict(self, sensor, env, board):
         return self.session.run(self.y_, {

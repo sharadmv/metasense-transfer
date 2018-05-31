@@ -82,7 +82,7 @@ for round in BOARDS:
         else:
             total_data = pd.concat([total_data, data])
         temperature = data['temperature'] * 9 / 5 + 32
-        humidity = data['humidity']
+        humidity = data['absolute-humidity']
         no2 = data[data["epa-no2"] < data["epa-no2"].quantile(0.99)]["epa-no2"]
         o3 = data[data["epa-o3"] < data["epa-o3"].quantile(0.99)]["epa-o3"]
         sns.distplot(temperature, ax=ROUND_PLOTS[round][1], label=location, axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
@@ -110,9 +110,9 @@ sns.distplot(total_data['temperature'][total_data['Location'] == 'donovan'], ax=
 sns.distplot(total_data['temperature'][total_data['Location'] == 'shafter'], ax=TEMPERATURE_PLOT[1], label="Shafter", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
 TEMPERATURE_PLOT[1].legend(loc='best')
 HUMIDITY_PLOT = plt.subplots()
-sns.distplot(total_data['humidity'][total_data['Location'] == 'elcajon'], ax=HUMIDITY_PLOT[1], label="El Cajon", axlabel='Humidity (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
-sns.distplot(total_data['humidity'][total_data['Location'] == 'donovan'], ax=HUMIDITY_PLOT[1], label="Donovan", axlabel='Humidity (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
-sns.distplot(total_data['humidity'][total_data['Location'] == 'shafter'], ax=HUMIDITY_PLOT[1], label="Shafter", axlabel='Humidity (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
+sns.distplot(total_data['absolute-humidity'][total_data['Location'] == 'elcajon'], ax=HUMIDITY_PLOT[1], label="El Cajon", axlabel='Humidity (kPa)', kde_kws=dict(bw='silverman'), norm_hist=False)
+sns.distplot(total_data['absolute-humidity'][total_data['Location'] == 'donovan'], ax=HUMIDITY_PLOT[1], label="Donovan", axlabel='Humidity (kPa)', kde_kws=dict(bw='silverman'), norm_hist=False)
+sns.distplot(total_data['absolute-humidity'][total_data['Location'] == 'shafter'], ax=HUMIDITY_PLOT[1], label="Shafter", axlabel='Humidity (kPa)', kde_kws=dict(bw='silverman'), norm_hist=False)
 HUMIDITY_PLOT[1].legend(loc='best')
 
 out_dir = Path('results') / 'distributions'

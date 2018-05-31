@@ -9,7 +9,7 @@ from metasense.data import load
 from deepx import nn
 from metasense.models import SubuForest, Linear, NeuralNetwork
 
-X_features = ['no2', 'o3', 'co', 'temperature', 'humidity', 'pressure']
+X_features = ['no2', 'o3', 'co', 'temperature', 'absolute-humidity', 'pressure']
 Y_features = ['epa-no2', 'epa-o3']
 
 def parse_args():
@@ -47,6 +47,8 @@ def level2(out_dir, X_features):
                     boards[board_id] = set()
                 boards[board_id].add((round, location))
     for board_id in tqdm.tqdm(boards):
+        print("Training board:", board_id)
+        print(boards[board_id])
         if len(boards[board_id]) != 3:
             continue
         for test_config in boards[board_id]:

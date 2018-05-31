@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.model_selection import train_test_split
 from pathlib import Path
 import pandas as pd
@@ -10,6 +11,11 @@ def load(round, location, board_id, root_dir=Path('data/final'), seed=0):
     data['co']  = data['co-A']  - data['co-W']
     data['epa-no2'] *= 1000
     data['epa-o3'] *= 1000
+    T = data['temperature'] + 273.15
+    data['absolute-humidity'] = data['humidity'] / 100 * np.exp(
+        54.842763 - 6763.22 / T - 4.210 * np.log(T) + 0.000367 * T +
+        np.tanh(0.0415 * (T - 218.8)) * (53.878 - 1331.22 / T
+                                         - 9.44523 * np.log(T) + 0.014025 * T)) / 1000
     data['board'] = board_id
     data['location'] = location
     data['round'] = round
