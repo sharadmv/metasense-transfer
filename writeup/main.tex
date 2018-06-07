@@ -49,6 +49,39 @@ between locations every two weeks (see \autoref{tab:board-rotations}).
 We do not have CO data for Shafter and Donovan, so we will focus only on
 O3 and NO2.
 
+\section{Distributions}
+In this section, we describe
+and visualize the distributions
+of various values in the data.
+
+\subsection{Environment}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{results/distributions/temperature.png}
+\caption{Temperature distribution based on
+location}
+\label{fig:temperature}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{results/distributions/humidity.png}
+\caption{Humidity distribution based on
+location}
+\label{fig:humidity}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{results/distributions/humidity.png}
+\caption{Relative humidity distribution based on
+location}
+\label{fig:humidity}
+\end{figure}
+
+
+
 \section{Basic calibration results}
 
 A calibration model takes in sensor readings and environment
@@ -87,13 +120,61 @@ to be better than test.
 Overall, we see that random forests have the lowest Level 0 and Level 3 error. This is consistent with results we see in \cite{subu}. 
 
 \begin{figure}[H]
-\begin{subfigure}{0.5\textwidth}
+\centering
+\begin{subfigure}{0.45\textwidth}
 \includegraphics[width=\textwidth]{results/linear/no2.png}
+\caption{NO2}
 \end{subfigure}
-\begin{subfigure}{0.5\textwidth}
+\begin{subfigure}{0.45\textwidth}
 \includegraphics[width=\textwidth]{results/linear/o3.png}
+\caption{O3}
 \end{subfigure}
+\caption{Results for linear regression. Error is in parts per billion}
+\label{fig:results-linear}
 \end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/nn-2/no2.png}
+\caption{NO2}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/nn-2/o3.png}
+\caption{O3}
+\end{subfigure}
+\caption{Results for NN[2]. Error is in parts per billion}
+\label{fig:results-nn2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/nn-4/no2.png}
+\caption{NO2}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/nn-4/o3.png}
+\caption{O3}
+\end{subfigure}
+\caption{Results for NN[4]. Error is in parts per billion}
+\label{fig:results-nn4}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/subu/no2.png}
+\caption{NO2}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/subu/o3.png}
+\caption{O3}
+\end{subfigure}
+\caption{Results for Subu. Error is in parts per billion}
+\label{fig:results-subu}
+\end{figure}
+
 
 We observe when comparing Level 1 error difference (Level 1 train minus Level 1 test), random forests suffer great
 drops in performance.
@@ -102,14 +183,22 @@ report the lowest test error for Level 0 and Level 3.  See \autoref{fig:generali
 details.
 
 \begin{figure}[H]
-\includegraphics[]{results/difference.png}
-\caption{Level 1 difference plots. Train minus test errors for various models. A smaller value means that the models}
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/no2mae_diff.png}
+\caption{NO2}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{results/o3mae_diff.png}
+\caption{O3}
+\end{subfigure}
+\caption{Level 1 difference plots. Train minus test errors for various models. A smaller value means that the models transfer better.}
 \label{fig:generalization}
 \end{figure}
 
 \section{Neural representation learning}
 
-We conclude with a novel idea: we split
+We now present split-neural network results: we split
 up calibration into two stages, a sensor model
 and a pollutant model, which we will call $s_i$ and $c$
 respectively.
@@ -132,24 +221,7 @@ to be some fixed dimension $d$. We hope that the sensor representation
 contains the minimal information to produce calibrated readings.
 
 We experiment with each $s_i$ being a linear regression model,
-and $c$ being a deep neural network (four layers, 200 width ReLU). The only experiment 
-we run (for now)
-is training on data from round 2 and testing it on round 1.
-
-The results shown in 
-\autoref{tab:board17-rep-1},
-\autoref{tab:board19-rep-1},
-and
-\autoref{tab:board21-rep-1}
-are promising. We retain the
-same transfer test MAE for O3,
-but improve test MAE for NO2
-by a factor of 2 (comparing results to
-\autoref{tab:board17-transfer-1},
-\autoref{tab:board19-transfer-1},
-and
-\autoref{tab:board21-transfer-1}
-).
+and $c$ being a deep neural network (two layers, 100 width ReLU). 
 
 \appendix
 \setcounter{table}{0}
