@@ -64,9 +64,9 @@ LOCATION_O3 = {
 for location in LOCATION_PLOTS:
     LOCATION_PLOTS[location][1].set_title("%s - Temperature" % location)
 for location in LOCATION_NO2:
-    LOCATION_PLOTS[location][1].set_title("%s - Temperature" % location)
+    LOCATION_PLOTS[location][1].set_title("%s - NO2" % location)
 for location in LOCATION_O3:
-    LOCATION_PLOTS[location][1].set_title("%s - Temperature" % location)
+    LOCATION_PLOTS[location][1].set_title("%s - O3" % location)
 for location in HUMIDITY_PLOTS:
     HUMIDITY_PLOTS[location][1].set_title("%s - Humidity" % location)
 total_data = None
@@ -100,9 +100,9 @@ for location in LOCATION_PLOTS:
 for location in HUMIDITY_PLOTS:
     HUMIDITY_PLOTS[location][1].legend(loc='best')
 for location in LOCATION_NO2:
-    LOCATION_PLOTS[location][1].legend(loc='best')
+    LOCATION_NO2[location][1].legend(loc='best')
 for location in LOCATION_O3:
-    LOCATION_PLOTS[location][1].legend(loc='best')
+    LOCATION_O3[location][1].legend(loc='best')
 
 TEMPERATURE_PLOT = plt.subplots()
 sns.distplot(total_data['temperature'][total_data['Location'] == 'elcajon'], ax=TEMPERATURE_PLOT[1], label="El Cajon", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
