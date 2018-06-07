@@ -8,7 +8,7 @@ import joblib
 from path import Path
 import click
 
-def load_subu(subu_path, models):
+def load_subu(subu_path, models, name):
     subu_level1 = pd.read_csv(subu_path / 'level1' / 'test.csv')
     subu_level1['Model'] = subu_level1['Model'].apply(eval)
     subu_level1['Testing Location'] = subu_level1['Testing Location'].apply(eval)
@@ -30,9 +30,9 @@ def load_subu(subu_path, models):
     for model in models:
         if model not in subu_models:
             level1 = subu_level1[subu_level1['Model'] == model]
-            assert len(level1) == 1
+            assert len(level1) == 1, level1
             subu_results = subu_results.append(level1)
-    subu_results['Calibration'] = 'Random Forest'
+    subu_results['Calibration'] = name
     subu_results = subu_results.drop('Unnamed: 0', axis=1)
     return subu_results
 
@@ -82,13 +82,14 @@ def plot_results(results, column, out_path):
 
 
 @click.command()
+@click.argument('name', nargs=1)
 @click.argument('out_path', nargs=1)
 @click.argument('subu_path', nargs=1)
 @click.argument('models', nargs=-1)
-def main(out_path, subu_path, models):
+def main(name, out_path, subu_path, models):
     out_path = Path(out_path)
     split_results, split_models = get_results(models)
-    subu_results = load_subu(Path(subu_path), split_models)
+    subu_results = load_subu(Path(subu_path), split_models, name)
     merged_results = merge_results(split_results, subu_results)
     merged_results.to_csv(out_path / 'results.csv')
     merged_results.to_latex(out_path / 'results.tex')

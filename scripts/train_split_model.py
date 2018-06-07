@@ -40,7 +40,7 @@ def train(out_dir, dim, seed, load_model=None):
             # board_id: nn.Relu(100) >> nn.Relu(100) >> nn.Linear(dim) for board_id in boards
             board_id: nn.Linear(3, dim) for board_id in boards
         }
-        calibration_model = nn.Relu(dim + 3, 200) >> nn.Relu(200) >> nn.Linear(2)
+        calibration_model = nn.Relu(dim + 3, 50) >> nn.Relu(50) >> nn.Linear(2)
         split_model = SplitModel(sensor_models, calibration_model, log_dir=out_dir, lr=args.lr, batch_size=args.batch_size)
     else:
         split_model = joblib.load(load_model)
