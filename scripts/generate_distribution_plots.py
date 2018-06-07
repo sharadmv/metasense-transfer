@@ -131,6 +131,6 @@ for round, plot in ROUND_NO2.items():
 for round, plot in ROUND_O3.items():
     plot[0].savefig(str(out_dir / ('round%u_o3.png' % round)), bbox_inches='tight')
 for location, plot in LOCATION_NO2.items():
-    plot[0].savefig(str(out_dir / ('location%s_no2.png' % location)), bbox_inches='tight')
+    plot[0].savefig(str(out_dir / ('location_%s_no2.png' % location)), bbox_inches='tight')
 for location, plot in LOCATION_O3.items():
-    plot[0].savefig(str(out_dir / ('location%s_o3.png' % location)), bbox_inches='tight')
+    plot[0].savefig(str(out_dir / ('location_%s_o3.png' % location)), bbox_inches='tight')
