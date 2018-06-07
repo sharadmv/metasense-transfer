@@ -7,6 +7,8 @@
 \usepackage{caption, subcaption}
 \usepackage{graphicx}
         
+\usepackage[preprint]{nips_2018}
+
 
 \title{San Diego Calibration Results}
 \author{Sharad Vikram}
@@ -56,7 +58,7 @@ of various values in the data.
 
 \subsection{Environment}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{results/distributions/temperature.png}
 \caption{Temperature distribution based on
@@ -64,7 +66,7 @@ location}
 \label{fig:temperature}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{results/distributions/humidity.png}
 \caption{Absolute humidity distribution based on
@@ -72,7 +74,7 @@ location}
 \label{fig:humidity}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.32\textwidth}
 \includegraphics[width=\textwidth]{results/distributions/location_donovan_temperature.png}
@@ -90,7 +92,7 @@ location}
 \label{fig:temperature-locations}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.32\textwidth}
 \includegraphics[width=\textwidth]{results/distributions/location_donovan_humidity.png}
@@ -108,7 +110,7 @@ location}
 \label{fig:humidity-locations}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.32\textwidth}
 \includegraphics[width=\textwidth]{results/distributions/round1_temperature.png}
@@ -127,7 +129,8 @@ location}
 \end{figure}
 
 \subsection{Pollutant values}
-\begin{figure}
+
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.32\textwidth}
 \includegraphics[width=\textwidth]{results/distributions/location_donovan_no2.png}
@@ -143,9 +146,9 @@ location}
 \end{subfigure}
 \caption{NO2 at locations}
 \label{fig:no2-locations}
-
 \end{figure}
-\begin{figure}
+
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.32\textwidth}
 \includegraphics[width=\textwidth]{results/distributions/round1_no2.png}
@@ -163,6 +166,43 @@ location}
 \label{fig:no2-rounds}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\textwidth]{results/distributions/location_donovan_o3.png}
+\caption{Round 1}
+\end{subfigure}
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\textwidth]{results/distributions/location_elcajon_o3.png}
+\caption{Round 2}
+\end{subfigure}
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\textwidth]{results/distributions/location_shafter_o3.png}
+\caption{Round 3}
+\end{subfigure}
+\caption{O3 at locations}
+\label{fig:o3-locations}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\textwidth]{results/distributions/round1_o3.png}
+\caption{Round 1}
+\end{subfigure}
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\textwidth]{results/distributions/round2_o3.png}
+\caption{Round 2}
+\end{subfigure}
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\textwidth]{results/distributions/round3_o3.png}
+\caption{Round 3}
+\end{subfigure}
+\caption{O3 over rounds}
+\label{fig:o3-rounds}
+\end{figure}
+
+
 \section{Basic calibration results}
 
 A calibration model takes in sensor readings and environment
@@ -171,6 +211,7 @@ we train a model for each board.
 We aim to train models that are robust after moving location.
 
 \begin{table}[H]
+\centering
 \begin{tabular}{|l|l|}
 \hline
 \textbf{Level 0} & Train on location A and test on location A \\ \hline
@@ -303,6 +344,179 @@ contains the minimal information to produce calibrated readings.
 
 We experiment with each $s_i$ being a linear regression model,
 and $c$ being a deep neural network (two layers, 100 width ReLU). 
+Each set of data we collect
+is identified by a triplet of information (round, location, board number). In total, we have 25 of such datasets as defined in \autoref{tab:board-rotations}. To benchmark these split models, we train on all of these datasets, but
+hold one triple out, resulting in a
+total training set size of 24 datasets and test size of 1 dataset. This results in a total of 25 experiments
+for which we boxplot the results.
+We compare the split models to our four static models (Linear, NN[2], NN[4], Subu) by comparing the Split-NN performance on the held out dataset to the Level 2 performance of the four models.
+Level 2 performance corresponds to training on two locations
+and testing on the third. The split model has access to the same training data as the Level 2 models, but with the addition of data from other boards. The hope is this additional board data can help improve upon Level 2 performance, which can be thought of as the ``best'' possible transfer performance.
+
+Notice that for some boards, we do not have the full three rounds of data (Boards 17 and 20). Therefore, there are no Level 2 results for these boards, but there are Level 1. For these two boards, in particular, we compare the split model to the Level 1 performance for a fair benchmark. This corresponds to the ``Training Size'' of 1.0 or 2.0 (Level 1 and Level 2).
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/no2mae.png}
+\caption{NO2 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/o3mae.png}
+\caption{O3 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/no2cvmae.png}
+\caption{NO2 CvMAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/o3cvmae.png}
+\caption{O3 CvMAE}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and Linear. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/no2mae.png}
+\caption{NO2 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/o3mae.png}
+\caption{O3 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/no2cvmae.png}
+\caption{NO2 CvMAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/o3cvmae.png}
+\caption{O3 CvMAE}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and NN[2]. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/no2mae.png}
+\caption{NO2 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/o3mae.png}
+\caption{O3 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/no2cvmae.png}
+\caption{NO2 CvMAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/o3cvmae.png}
+\caption{O3 CvMAE}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and NN[4]. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/no2mae.png}
+\caption{NO2 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/o3mae.png}
+\caption{O3 MAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/no2cvmae.png}
+\caption{NO2 CvMAE}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/o3cvmae.png}
+\caption{O3 CvMAE}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and Subu. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
+
+To further accentuate the improvement, we can compare
+the difference in performance between Split-NN and the four models. In these plots, a more negative value corresponds to a larger improvement.
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/no2mae-diff.png}
+\caption{NO2 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/o3mae-diff.png}
+\caption{O3 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/no2cvmae-diff.png}
+\caption{NO2 CvMAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/linear/o3cvmae-diff.png}
+\caption{O3 CvMAE Difference}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and Linear. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/no2mae-diff.png}
+\caption{NO2 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/o3mae-diff.png}
+\caption{O3 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/no2cvmae-diff.png}
+\caption{NO2 CvMAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-2/o3cvmae-diff.png}
+\caption{O3 CvMAE Difference}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and NN[2]. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/no2mae-diff.png}
+\caption{NO2 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/o3mae-diff.png}
+\caption{O3 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/no2cvmae-diff.png}
+\caption{NO2 CvMAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/nn-4/o3cvmae-diff.png}
+\caption{O3 CvMAE Difference}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and NN[4]. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/no2mae-diff.png}
+\caption{NO2 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/o3mae-diff.png}
+\caption{O3 MAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/no2cvmae-diff.png}
+\caption{NO2 CvMAE Difference}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{results/split/linear_relu2-100/subu/o3cvmae-diff.png}
+\caption{O3 CvMAE Difference}
+\end{subfigure}
+\caption{Comparison of errors of Split NN and Subu. Training size corresponds to a Level 1 or Level 2 comparison.}
+\end{figure}
 
 \appendix
 \setcounter{table}{0}
@@ -531,4 +745,37 @@ and $c$ being a deep neural network (two layers, 100 width ReLU).
 \caption{Level 3 test results for Subu}
 \end{table}
 
+\begin{landscape}
+
+\section{Split neural network results}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/split/linear_relu2-100/linear/results.tex}
+\caption{Comparison of Split NN vs Linear}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/split/linear_relu2-100/nn-2/results.tex}
+\caption{Comparison of Split NN vs NN[2]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/split/linear_relu2-100/nn-4/results.tex}
+\caption{Comparison of Split NN vs NN[4]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/split/linear_relu2-100/subu/results.tex}
+\caption{Comparison of Split NN vs Subu}
+\end{table}
+
+\end{landscape}
 \end{document}
