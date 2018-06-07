@@ -1,0 +1,381 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref, float}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{caption, subcaption}
+\usepackage{graphicx}
+        
+
+\title{San Diego Calibration Results}
+\author{Sharad Vikram}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Data}
+
+We have been collecting data from nine boards
+from three sites in southern California.
+\begin{enumerate}
+    \item El Cajon
+    \item Donovan
+    \item Shafter
+\end{enumerate}
+We have split up the boards and rotated the boards
+between locations every two weeks (see \autoref{tab:board-rotations}).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{l|lll}
+                  & \textbf{Round 1} & \textbf{Round 2} & \textbf{Round 3} \\ \hline
+\textbf{Board 17} & N/A & El Cajon         & Shafter          \\
+\textbf{Board 19} & Donovan          & El Cajon         & Shafter          \\
+\textbf{Board 21} & Donovan          & El Cajon         & Shafter          \\ \hline
+\textbf{Board 11} & El Cajon         & Shafter          & Donovan          \\
+\textbf{Board 12} & El Cajon         & Shafter          & Donovan          \\
+\textbf{Board 13} & El Cajon         & Shafter          & Donovan          \\ \hline
+\textbf{Board 15} & Shafter          & Donovan          & El Cajon         \\
+\textbf{Board 18} & Shafter          & Donovan          & El Cajon         \\
+\textbf{Board 20} & N/A & Donovan          & El Cajon        
+\end{tabular}
+\caption{Board locations for each round}
+\label{tab:board-rotations}
+\end{table}
+
+We do not have CO data for Shafter and Donovan, so we will focus only on
+O3 and NO2.
+
+\section{Basic calibration results}
+
+A calibration model takes in sensor readings and environment
+variables and outputs pollutant levels. In this basic setup,
+we train a model for each board.
+We aim to train models that are robust after moving location.
+
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Level 0} & Train on location A and test on location A \\ \hline
+\textbf{Level 1} & Train on location A and test on location B \\ \hline
+\textbf{Level 2} & Train on location A and B and test on location C \\ \hline
+\textbf{Level 3} & Train on location A, B, and C and test on location A \\ \hline
+\end{tabular}
+\caption{Description of different types of benchmarks.}
+\label{tab:levels}
+\end{table}
+
+We benchmark four different models: linear regression (linear), random forest regressors based on \cite{subu}(Subu),
+a 2-layer neural network (NN[2]), and a 4-layer neural network (NN[4]). The ideal model will
+both predict pollutant levels accurately and
+generalize across locations.
+
+To benchmark, we first take our datasets (25 total, see \autoref{tab:board-rotations}), and partition each into training and test sets (20\% reserved for testing).
+We perform several types of benchmarks,
+each to learn about the transferrability of each model (see \autoref{tab:levels}).
+In general, we expect Level 0 and Level 3 performance to be the best, as they involve training and testing on data from the same distribution. Furthermore, we expected Level 2 to have lower error than Level 1, because Level 2 is trained on more data and a wider distribution of data (two locations vs one location).
+If a model's Level 1 and Level 2 error are close to Level 0 and Level 3, then the model transfers well. Otherwise, the model overfits to its location.
+
+
+These raw results are in \autoref{sec:simpleresults}. 
+We split results into train vs. test
+results, where we expect train performance
+to be better than test.
+Overall, we see that random forests have the lowest Level 0 and Level 3 error. This is consistent with results we see in \cite{subu}. 
+
+\begin{figure}[H]
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=\textwidth]{results/linear/no2.png}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=\textwidth]{results/linear/o3.png}
+\end{subfigure}
+\end{figure}
+
+We observe when comparing Level 1 error difference (Level 1 train minus Level 1 test), random forests suffer great
+drops in performance.
+This hints that RFs are overfitting to the training data, even if they
+report the lowest test error for Level 0 and Level 3.  See \autoref{fig:generalization} for 
+details.
+
+\begin{figure}[H]
+\includegraphics[]{results/difference.png}
+\caption{Level 1 difference plots. Train minus test errors for various models. A smaller value means that the models}
+\label{fig:generalization}
+\end{figure}
+
+\section{Neural representation learning}
+
+We conclude with a novel idea: we split
+up calibration into two stages, a sensor model
+and a pollutant model, which we will call $s_i$ and $c$
+respectively.
+Given a sensor readings $x$ from board $i$,
+and environment readings $e$
+we obtain a calibrated reading $y$ by simply passing it through
+the sensor model, then the pollutant model, i.e.
+\begin{align*}
+    y = c(s_i(x), e)
+\end{align*}
+We can learn individual sensor models for each board,
+but the pollutant model is shared across boards. This allows
+us to pool data across boards to learn the pollutant model.
+Furthermore, environment variables are only 
+included in the pollutant model, which hopefully enables
+a stronger fit with a very complex pollutant model.
+
+Each $s_i(x)$ outputs a ``sensor representation'', which is chosen
+to be some fixed dimension $d$. We hope that the sensor representation
+contains the minimal information to produce calibrated readings.
+
+We experiment with each $s_i$ being a linear regression model,
+and $c$ being a deep neural network (four layers, 200 width ReLU). The only experiment 
+we run (for now)
+is training on data from round 2 and testing it on round 1.
+
+The results shown in 
+\autoref{tab:board17-rep-1},
+\autoref{tab:board19-rep-1},
+and
+\autoref{tab:board21-rep-1}
+are promising. We retain the
+same transfer test MAE for O3,
+but improve test MAE for NO2
+by a factor of 2 (comparing results to
+\autoref{tab:board17-transfer-1},
+\autoref{tab:board19-transfer-1},
+and
+\autoref{tab:board21-transfer-1}
+).
+
+\appendix
+\setcounter{table}{0}
+\renewcommand{\thetable}{\Alph{section}.\arabic{table}}
+
+\section{Raw results for simple calibration models}
+\label{sec:simpleresults}
+
+\subsection{Benchmarks for linear regression}
+\label{sec:results-lr}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level0/train.tex}
+\caption{Level 0 train results for linear regression}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level0/test.tex}
+\caption{Level 0 test results for linear regression}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level1/train.tex}
+\caption{Level 1 train results for linear regression}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level1/test.tex}
+\caption{Level 1 test results for linear regression}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level2/train.tex}
+\caption{Level 2 train results for linear regression}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level2/test.tex}
+\caption{Level 2 test results for linear regression}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level3/train.tex}
+\caption{Level 3 train results for linear regression}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/linear/level3/test.tex}
+\caption{Level 3 test results for linear regression}
+\end{table}
+
+\subsection{Benchmarks for NN[2]}
+\label{sec:results-nn2}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level0/train.tex}
+\caption{Level 0 train results for NN[2]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level0/test.tex}
+\caption{Level 0 test results for NN[2]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level1/train.tex}
+\caption{Level 1 train results for NN[2]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level1/test.tex}
+\caption{Level 1 test results for NN[2]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level2/train.tex}
+\caption{Level 2 train results for NN[2]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level2/test.tex}
+\caption{Level 2 test results for NN[2]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level3/train.tex}
+\caption{Level 3 train results for NN[2]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-2/level3/test.tex}
+\caption{Level 3 test results for NN[2]}
+\end{table}
+
+\subsection{Benchmarks for NN[4]}
+\label{sec:results-nn4}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level0/train.tex}
+\caption{Level 0 train results for NN[4]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level0/test.tex}
+\caption{Level 0 test results for NN[4]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level1/train.tex}
+\caption{Level 1 train results for NN[4]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level1/test.tex}
+\caption{Level 1 test results for NN[4]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level2/train.tex}
+\caption{Level 2 train results for NN[4]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level2/test.tex}
+\caption{Level 2 test results for NN[4]}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level3/train.tex}
+\caption{Level 3 train results for NN[4]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/nn-4/level3/test.tex}
+\caption{Level 3 test results for NN[4]}
+\end{table}
+
+\subsection{Benchmarks for Subu}
+\label{sec:results-nn4}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level0/train.tex}
+\caption{Level 0 train results for Subu}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level0/test.tex}
+\caption{Level 0 test results for Subu}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level1/train.tex}
+\caption{Level 1 train results for Subu}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level1/test.tex}
+\caption{Level 1 test results for Subu}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level2/train.tex}
+\caption{Level 2 train results for NN[4]}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level2/test.tex}
+\caption{Level 2 test results for Subu}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level3/train.tex}
+\caption{Level 3 train results for Subu}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/subu/level3/test.tex}
+\caption{Level 3 test results for Subu}
+\end{table}
+
+\end{document}
