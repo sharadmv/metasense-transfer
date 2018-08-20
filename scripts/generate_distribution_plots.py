@@ -73,13 +73,13 @@ LOCATION_NAME_MAP = {
 }
 
 for location in LOCATION_PLOTS:
-    LOCATION_PLOTS[location][1].set_title("%s - Temperature" % location)
+    LOCATION_PLOTS[location][1].set_title("%s - Temperature" % LOCATION_NAME_MAP[location])
 for location in LOCATION_NO2:
-    LOCATION_PLOTS[location][1].set_title("%s - NO2" % location)
+    LOCATION_PLOTS[location][1].set_title("%s - NO2" % LOCATION_NAME_MAP[location])
 for location in LOCATION_O3:
-    LOCATION_PLOTS[location][1].set_title("%s - O3" % location)
+    LOCATION_PLOTS[location][1].set_title("%s - O3" % LOCATION_NAME_MAP[location])
 for location in HUMIDITY_PLOTS:
-    HUMIDITY_PLOTS[location][1].set_title("%s - Humidity" % location)
+    HUMIDITY_PLOTS[location][1].set_title("%s - Humidity" % LOCATION_NAME_MAP[location])
 total_data = None
 for round in BOARDS:
     ROUND_HUMIDITY_PLOTS[round][1].set_title("Round %u - Absolute Humidity" % round)
