@@ -30,6 +30,11 @@ ROUND_PLOTS = {
     2: plt.subplots(),
     3: plt.subplots()
 }
+ROUND_HUMIDITY_PLOTS = {
+    1: plt.subplots(),
+    2: plt.subplots(),
+    3: plt.subplots()
+}
 LOCATION_PLOTS = {
     'elcajon': plt.subplots(),
     'donovan': plt.subplots(),
@@ -71,6 +76,7 @@ for location in HUMIDITY_PLOTS:
     HUMIDITY_PLOTS[location][1].set_title("%s - Humidity" % location)
 total_data = None
 for round in BOARDS:
+    ROUND_HUMIDITY_PLOTS[round][1].set_title("Round %u - Absolute Humidity" % round)
     ROUND_PLOTS[round][1].set_title("Round %u - Temperature" % round)
     ROUND_NO2[round][1].set_title("Round %u - NO2" % round)
     ROUND_O3[round][1].set_title("Round %u - O3" % round)
@@ -78,21 +84,24 @@ for round in BOARDS:
         data = pd.concat(load(round, location, BOARDS[round][location]))
         data['Round'] = round
         data['Location'] = location
+        temperature = data['temperature'] * 9 / 5 + 32
+        data['temperature-F'] = temperature
         if total_data is None:
             total_data = data
         else:
             total_data = pd.concat([total_data, data])
-        temperature = data['temperature'] * 9 / 5 + 32
         humidity = data['absolute-humidity']
         no2 = data[data["epa-no2"] < data["epa-no2"].quantile(0.99)]["epa-no2"]
         o3 = data[data["epa-o3"] < data["epa-o3"].quantile(0.99)]["epa-o3"]
         sns.distplot(temperature, ax=ROUND_PLOTS[round][1], label=location, axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
         sns.distplot(temperature, ax=LOCATION_PLOTS[location][1], label="Round %u" % round, axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
+        sns.distplot(humidity, ax=ROUND_HUMIDITY_PLOTS[round][1], label="Round %u" % round, axlabel='Humidity', kde_kws=dict(bw='silverman'), norm_hist=False)
         sns.distplot(humidity, ax=HUMIDITY_PLOTS[location][1], label="Round %u" % round, axlabel='Humidity', kde_kws=dict(bw='silverman'), norm_hist=False)
         sns.distplot(no2, ax=ROUND_NO2[round][1], label=location, axlabel='NO2 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
         sns.distplot(o3, ax=ROUND_O3[round][1], label=location, axlabel='O3 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
         sns.distplot(no2, ax=LOCATION_NO2[location][1], label="Round %u" % round, axlabel='NO2 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
         sns.distplot(o3, ax=LOCATION_O3[location][1], label="Round %u" % round, axlabel='O3 (ppb)', kde_kws=dict(bw='silverman'), norm_hist=False)
+    ROUND_HUMIDITY_PLOTS[round][1].legend(loc='best')
     ROUND_PLOTS[round][1].legend(loc='best')
     ROUND_NO2[round][1].legend(loc='best')
     ROUND_O3[round][1].legend(loc='best')
@@ -106,9 +115,9 @@ for location in LOCATION_O3:
     LOCATION_O3[location][1].legend(loc='best')
 
 TEMPERATURE_PLOT = plt.subplots()
-sns.distplot(total_data['temperature'][total_data['Location'] == 'elcajon'], ax=TEMPERATURE_PLOT[1], label="El Cajon", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
-sns.distplot(total_data['temperature'][total_data['Location'] == 'donovan'], ax=TEMPERATURE_PLOT[1], label="Donovan", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
-sns.distplot(total_data['temperature'][total_data['Location'] == 'shafter'], ax=TEMPERATURE_PLOT[1], label="Shafter", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
+sns.distplot(total_data['temperature-F'][total_data['Location'] == 'elcajon'], ax=TEMPERATURE_PLOT[1], label="El Cajon", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
+sns.distplot(total_data['temperature-F'][total_data['Location'] == 'donovan'], ax=TEMPERATURE_PLOT[1], label="Donovan", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
+sns.distplot(total_data['temperature-F'][total_data['Location'] == 'shafter'], ax=TEMPERATURE_PLOT[1], label="Shafter", axlabel='Temperature (F)', kde_kws=dict(bw='silverman'), norm_hist=False)
 TEMPERATURE_PLOT[1].legend(loc='best')
 HUMIDITY_PLOT = plt.subplots()
 sns.distplot(total_data['absolute-humidity'][total_data['Location'] == 'elcajon'], ax=HUMIDITY_PLOT[1], label="El Cajon", axlabel='Humidity (kPa)', kde_kws=dict(bw='silverman'), norm_hist=False)
@@ -121,6 +130,8 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 TEMPERATURE_PLOT[0].savefig(str(out_dir / ('temperature.png')), bbox_inches='tight')
 HUMIDITY_PLOT[0].savefig(str(out_dir / ('humidity.png')), bbox_inches='tight')
+for round, plot in ROUND_HUMIDITY_PLOTS.items():
+    plot[0].savefig(str(out_dir / ('round%u_humidity.png' % round)), bbox_inches='tight')
 for round, plot in ROUND_PLOTS.items():
     plot[0].savefig(str(out_dir / ('round%u_temperature.png' % round)), bbox_inches='tight')
 for location, plot in LOCATION_PLOTS.items():
