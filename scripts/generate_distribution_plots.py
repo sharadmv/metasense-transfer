@@ -76,6 +76,7 @@ for round in BOARDS:
     ROUND_O3[round][1].set_title("Round %u - O3" % round)
     for location in BOARDS[round]:
         data = pd.concat(load(round, location, BOARDS[round][location]))
+        data['Round'] = round
         data['Location'] = location
         if total_data is None:
             total_data = data
@@ -134,3 +135,12 @@ for location, plot in LOCATION_NO2.items():
     plot[0].savefig(str(out_dir / ('location_%s_no2.png' % location)), bbox_inches='tight')
 for location, plot in LOCATION_O3.items():
     plot[0].savefig(str(out_dir / ('location_%s_o3.png' % location)), bbox_inches='tight')
+
+location_summary = total_data.groupby('Location').apply(lambda x: x.dropna()[['epa-no2', 'epa-o3', 'temperature', 'pressure', 'humidity']].describe())
+round_summary = total_data.groupby('Round').apply(lambda x: x.dropna()[['epa-no2', 'epa-o3', 'temperature', 'pressure', 'humidity']].describe())
+
+with open(str(out_dir / 'location_summary.tex'), 'w') as fp:
+    fp.write(location_summary.to_latex())
+
+with open(str(out_dir / 'round_summary.tex'), 'w') as fp:
+    fp.write(round_summary.to_latex())
