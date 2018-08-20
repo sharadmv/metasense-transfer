@@ -136,8 +136,8 @@ for location, plot in LOCATION_NO2.items():
 for location, plot in LOCATION_O3.items():
     plot[0].savefig(str(out_dir / ('location_%s_o3.png' % location)), bbox_inches='tight')
 
-location_summary = total_data.groupby('Location').apply(lambda x: x.dropna()[['epa-no2', 'epa-o3', 'temperature', 'pressure', 'humidity']].describe())
-round_summary = total_data.groupby('Round').apply(lambda x: x.dropna()[['epa-no2', 'epa-o3', 'temperature', 'pressure', 'humidity']].describe())
+location_summary = total_data.groupby('Location').apply(lambda x: x[['epa-no2', 'epa-o3', 'temperature', 'pressure', 'humidity']].describe())
+round_summary = total_data.groupby('Round').apply(lambda x: x[['epa-no2', 'epa-o3', 'temperature', 'pressure', 'humidity']].describe())
 
 with open(str(out_dir / 'location_summary.tex'), 'w') as fp:
     fp.write(location_summary.to_latex())

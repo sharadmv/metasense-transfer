@@ -11,6 +11,8 @@ def load(round, location, board_id, root_dir=Path('data/final'), seed=0):
     data['co']  = data['co-A']  - data['co-W']
     data['epa-no2'] *= 1000
     data['epa-o3'] *= 1000
+    data['epa-no2'] = data['epa-no2'].clip(0, np.inf)
+    data['epa-o3'] = data['epa-o3'].clip(0, np.inf)
     T = data['temperature'] + 273.15
     data['absolute-humidity'] = data['humidity'] / 100 * np.exp(
         54.842763 - 6763.22 / T - 4.210 * np.log(T) + 0.000367 * T +
