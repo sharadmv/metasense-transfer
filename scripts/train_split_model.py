@@ -1,3 +1,4 @@
+import s3fs
 import pandas as pd
 from argparse import ArgumentParser
 import joblib
@@ -12,8 +13,11 @@ sensor_features = ['no2', 'o3', 'co']
 env_features = ['temperature', 'absolute-humidity', 'pressure']
 Y_features = ['epa-no2', 'epa-o3']
 
+BUCKET_NAME = "metasense-paper-results"
+
 def parse_args():
     argparser = ArgumentParser()
+    argparser.add_argument('experiment')
     argparser.add_argument('name')
     argparser.add_argument('--seed', type=int, default=0)
     argparser.add_argument('--location', default=None, type=str)
@@ -27,7 +31,7 @@ def parse_args():
     return argparser.parse_args()
 
 def train(out_dir, dim, seed, load_model=None):
-    (out_dir / 'models').mkdir(exist_ok=True, parents=True)
+    out_path = out_dir / 'models'
     boards = {}
     for round in DATA:
         for location in DATA[round]:
@@ -40,7 +44,7 @@ def train(out_dir, dim, seed, load_model=None):
             # board_id: nn.Relu(100) >> nn.Relu(100) >> nn.Linear(dim) for board_id in boards
             board_id: nn.Linear(3, dim) for board_id in boards
         }
-        calibration_model = nn.Relu(dim + 3, 50) >> nn.Relu(50) >> nn.Linear(2)
+        calibration_model = nn.Relu(dim + 3, 100) >> nn.Relu(100) >> nn.Linear(2)
         split_model = SplitModel(sensor_models, calibration_model, log_dir=out_dir, lr=args.lr, batch_size=args.batch_size)
     else:
         split_model = joblib.load(load_model)
@@ -69,12 +73,10 @@ def train(out_dir, dim, seed, load_model=None):
             data[i] = d.append(d.sample(max_size - d.shape[0], replace=True))
     data = pd.concat(data)
     split_model.fit(data[sensor_features], data[env_features], data['board'], data[Y_features], dump_every=(out_dir / 'models' / 'model_latest.pkl', 1000), n_iters=args.num_iters)
-    joblib.dump(split_model, out_dir / 'models' / 'model.pkl')
+    with fs.open(str(out_path / 'model.pkl'), 'wb') as fp:
+        joblib.dump(split_model, out_dir / 'models' / 'model.pkl')
 
 if __name__ == "__main__":
     args = parse_args()
-    out_dir = Path('results') / args.name
-
-    out_dir.mkdir(exist_ok=True, parents=True)
-
+    out_dir = Path(BUCKET_NAME) / args.experiment / args.name
     train(out_dir, args.dim, args.seed, load_model=args.load)

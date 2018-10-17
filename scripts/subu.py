@@ -35,6 +35,7 @@ def level1(out_dir, X_features):
         for location in DATA[round]:
             for board_id in DATA[round][location]:
                 train, _ = load(round, location, board_id)
+                print("Training:", round, location, board_id)
                 with fs.open(str(out_path / ('round%u_%s_board%u.pkl' % (round, location, board_id))), 'wb') as fp:
                     joblib.dump(
                         (
