@@ -1,3 +1,4 @@
+import s3fs
 import tqdm
 import pandas as pd
 from argparse import ArgumentParser
@@ -12,8 +13,11 @@ from metasense.models import SubuForest, Linear, NeuralNetwork
 X_features = ['no2', 'o3', 'co', 'temperature', 'absolute-humidity', 'pressure']
 Y_features = ['epa-no2', 'epa-o3']
 
+BUCKET_NAME = "metasense-paper-results"
+
 def parse_args():
     argparser = ArgumentParser()
+    argparser.add_argument('experiment')
     argparser.add_argument('name')
     argparser.add_argument('--level1', action='store_true')
     argparser.add_argument('--level2', action='store_true')
@@ -24,21 +28,25 @@ def parse_args():
     return argparser.parse_args()
 
 def level1(out_dir, X_features):
-    (out_dir / 'level1' / 'models').mkdir(exist_ok=True, parents=True)
+    out_path = out_dir / 'level1' / 'models'
+    if not fs.exists(str(out_path)):
+        fs.mkdir(str(out_path))
     for round in DATA:
         for location in DATA[round]:
             for board_id in DATA[round][location]:
-                print("Training: Round %u - %s - Board %u" % (round, location, board_id))
                 train, _ = load(round, location, board_id)
-                joblib.dump(
-                    (
-                        (round, location, board_id),
-                        Model(X_features).fit(train[X_features], train[Y_features])
-                    ), out_dir / 'level1' / 'models' / ('round%u_%s_board%u.pkl' % (round, location, board_id))
-                )
+                with fs.open(str(out_path / ('round%u_%s_board%u.pkl' % (round, location, board_id))), 'wb') as fp:
+                    joblib.dump(
+                        (
+                            (round, location, board_id),
+                            Model(X_features).fit(train[X_features], train[Y_features])
+                        ), fp
+                    )
 
 def level2(out_dir, X_features):
-    (out_dir / 'level2' / 'models').mkdir(exist_ok=True, parents=True)
+    out_path = out_dir / 'level2' / 'models'
+    if not fs.exists(str(out_path)):
+        fs.mkdir(str(out_path))
     boards = {}
     for round in DATA:
         for location in DATA[round]:
@@ -55,15 +63,20 @@ def level2(out_dir, X_features):
             train_config = boards[board_id] - {test_config}
             data = pd.concat([load(*(t[0], t[1], board_id))[0] for t in train_config])
             # test_data = load(*(test_config[0], test_config[1], board_id))
-            joblib.dump(
-                (
-                    (board_id, train_config),
-                    Model(X_features).fit(data[X_features], data[Y_features])
-                ), out_dir / 'level2' / 'models' / ('board%u_%s.pkl' % (board_id, '-'.join(map(str, list(train_config)))))
-            )
+            with fs.open(str(out_dir / 'level2' / 'models' / ('board%u_%s.pkl' % (board_id, '-'.join(map(str, list(train_config)))))
+), 'wb') as fp:
+                joblib.dump(
+                    (
+                        (board_id, train_config),
+                        Model(X_features).fit(data[X_features], data[Y_features])
+                    ),
+                    fp
+                )
 
 def level3(out_dir, X_features, seed):
-    (out_dir / 'level3' / 'models').mkdir(exist_ok=True, parents=True)
+    out_path = out_dir / 'level3' / 'models'
+    if not fs.exists(str(out_path)):
+        fs.mkdir(str(out_path))
     boards = {}
     for round in DATA:
         for location in DATA[round]:
@@ -74,18 +87,19 @@ def level3(out_dir, X_features, seed):
     for board_id in tqdm.tqdm(boards):
         data = [load(*(t[0], t[1], board_id)) for t in boards[board_id]]
         train_data = pd.concat([t[0] for t in data])
-        joblib.dump(
-            (
-                board_id,
-                Model(X_features).fit(train_data[X_features], train_data[Y_features])
-            ), out_dir / 'level3' / 'models' / ('board%u.pkl' % board_id)
-        )
+        with fs.open(str(out_dir / 'level3' / 'models' / ('board%u.pkl' % board_id)), 'wb') as fp:
+            joblib.dump(
+                (
+                    board_id,
+                    Model(X_features).fit(train_data[X_features], train_data[Y_features])
+                ), fp
+            )
 
 if __name__ == "__main__":
     args = parse_args()
-    out_dir = Path('results') / args.name
-
-    out_dir.mkdir(exist_ok=True, parents=True)
+    fs = s3fs.S3FileSystem(anon=False)
+    experiment_dir = Path(BUCKET_NAME) / args.experiment
+    out_dir = experiment_dir / args.name
     features = X_features[:]
     for feature in args.ignore_feature:
         features.remove(feature)
