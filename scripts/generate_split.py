@@ -1,3 +1,4 @@
+import s3fs
 import tqdm
 from argparse import ArgumentParser
 import numpy as np
@@ -16,8 +17,11 @@ sensor_features = ['no2', 'o3', 'co']
 env_features = ['temperature', 'absolute-humidity', 'pressure']
 Y_features = ['epa-no2', 'epa-o3']
 
+BUCKET_NAME = "metasense-paper-results"
+
 def parse_args():
     argparser = ArgumentParser()
+    argparser.add_argument('experiment')
     argparser.add_argument('name')
     argparser.add_argument('--level1', action='store_true')
     argparser.add_argument('--level2', action='store_true')
@@ -55,11 +59,12 @@ def get_triples():
             for board in DATA[round][location]:
                 yield (round, location, board)
 
-def level1(out_dir):
+def level1(out_dir, experiment_dir):
     RESULTS = {}
 
     (out_dir / 'level1').mkdir(exist_ok=True, parents=True)
-    model = joblib.load(out_dir / 'models' / 'model_latest.pkl')
+    with fs.open(str(experiment_dir / 'models' / 'model.pkl'), 'rb') as fp:
+        model = joblib.load(fp)
 
     for round, location, board in get_triples():
         if (round, location, board) not in RESULTS:
@@ -120,6 +125,10 @@ def level1(out_dir):
 
 if __name__ == "__main__":
     args = parse_args()
-    out_dir = Path('results') / args.name
 
-    level1(out_dir)
+    fs = s3fs.S3FileSystem(anon=False)
+    experiment_dir = Path(BUCKET_NAME) / args.experiment / args.name
+
+    out_dir = Path('results') / args.experiment / args.name
+
+    level1(out_dir, experiment_dir)

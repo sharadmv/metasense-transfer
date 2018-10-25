@@ -72,11 +72,15 @@ def train(out_dir, dim, seed, load_model=None):
         if d.shape[0] < max_size:
             data[i] = d.append(d.sample(max_size - d.shape[0], replace=True))
     data = pd.concat(data)
-    split_model.fit(data[sensor_features], data[env_features], data['board'], data[Y_features], dump_every=(out_dir / 'models' / 'model_latest.pkl', 1000), n_iters=args.num_iters)
+    def cb(model):
+        with fs.open(str(out_path / 'model_latest.pkl'), 'wb') as fp:
+            joblib.dump(split_model, fp)
+    split_model.fit(data[sensor_features], data[env_features], data['board'], data[Y_features], dump_every=(out_dir / 'models' / 'model_latest.pkl', 1000), n_iters=args.num_iters, cb=cb)
     with fs.open(str(out_path / 'model.pkl'), 'wb') as fp:
-        joblib.dump(split_model, out_dir / 'models' / 'model.pkl')
+        joblib.dump(split_model, fp)
 
 if __name__ == "__main__":
     args = parse_args()
+    fs = s3fs.S3FileSystem(anon=False)
     out_dir = Path(BUCKET_NAME) / args.experiment / args.name
     train(out_dir, args.dim, args.seed, load_model=args.load)

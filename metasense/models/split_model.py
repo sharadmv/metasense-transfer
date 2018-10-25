@@ -23,6 +23,7 @@ class SplitModel(Model):
             self.batch_size = batch_size
             self.lr = lr
 
+            self.learning_rate = T.placeholder(T.floatx(), [])
             self.sensors = T.placeholder(T.floatx(), [None, 3])
             self.env = T.placeholder(T.floatx(), [None, 3])
             self.board = T.placeholder(T.core.int32, [None])
@@ -39,11 +40,11 @@ class SplitModel(Model):
             T.core.summary.scalar('MSE', self.loss)
             T.core.summary.scalar('MAE', self.mae)
             self.summary = T.core.summary.merge_all()
-            self.train_op = T.core.train.AdamOptimizer(self.lr).minimize(self.loss)
+            self.train_op = T.core.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
 
         self.session = T.interactive_session(graph=self.graph)
 
-    def fit(self, sensor, env, board, y, n_iters=2000000, seed=0, dump_every=None):
+    def fit(self, sensor, env, board, y, n_iters=2000000, seed=0, dump_every=None, cb=None):
         sensor, env, board, y = np.array(sensor), np.array(env), np.array(board), np.array(y)
         sensor_train, sensor_valid, env_train, env_valid, board_train, board_valid, y_train, y_valid = train_test_split(sensor, env, board, y, test_size=0.2, random_state=seed)
         N = sensor_train.shape[0]
@@ -60,6 +61,7 @@ class SplitModel(Model):
                     self.env: env_train[idx],
                     self.board: [self.board_map[b] for b in board_train[idx]],
                     self.y: y_train[idx],
+                    self.learning_rate: self.lr / 100 if i > int(0.8 * n_iters) else self.lr
                 })
             else:
                 _, loss, summary = self.session.run([self.train_op, self.loss, self.summary], {
@@ -67,6 +69,7 @@ class SplitModel(Model):
                     self.env: env_train[idx],
                     self.board: [self.board_map[b] for b in board_train[idx]],
                     self.y: y_train[idx],
+                    self.learning_rate: self.lr / 100 if i > int(0.8 * n_iters) else self.lr
                 })
                 writer.add_summary(summary, i)
             if i % 1000 == 0:
@@ -76,8 +79,7 @@ class SplitModel(Model):
                         self.get_weights(), score[0].mean()
                     )
                     if dump_every is not None:
-                        dir, _ = dump_every
-                        joblib.dump(self, dir)
+                        cb(self)
                     print("New Best:", best[1], score)
         score = self.score(sensor_valid, env_valid, board_valid, y_valid)
         if score[0].mean() < best[1]:
