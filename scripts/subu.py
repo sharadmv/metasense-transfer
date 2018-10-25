@@ -29,8 +29,6 @@ def parse_args():
 
 def level1(out_dir, X_features):
     out_path = out_dir / 'level1' / 'models'
-    if not fs.exists(str(out_path)):
-        fs.mkdir(str(out_path))
     for round in DATA:
         for location in DATA[round]:
             for board_id in DATA[round][location]:
@@ -46,8 +44,6 @@ def level1(out_dir, X_features):
 
 def level2(out_dir, X_features):
     out_path = out_dir / 'level2' / 'models'
-    if not fs.exists(str(out_path)):
-        fs.mkdir(str(out_path))
     boards = {}
     for round in DATA:
         for location in DATA[round]:
@@ -76,8 +72,6 @@ def level2(out_dir, X_features):
 
 def level3(out_dir, X_features, seed):
     out_path = out_dir / 'level3' / 'models'
-    if not fs.exists(str(out_path)):
-        fs.mkdir(str(out_path))
     boards = {}
     for round in DATA:
         for location in DATA[round]:
