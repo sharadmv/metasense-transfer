@@ -21,13 +21,14 @@ def parse_args():
     argparser.add_argument('name')
     argparser.add_argument('--seed', type=int, default=0)
     argparser.add_argument('--location', default=None, type=str)
-    argparser.add_argument('--round', default=None, type=int)
-    argparser.add_argument('--board', default=None, type=int)
+    argparser.add_argument('--round', default=None, type=str)
+    argparser.add_argument('--board', default=None, type=str)
     argparser.add_argument('--dim', type=int, default=3)
-    argparser.add_argument('--batch-size', type=int, default=100)
+    argparser.add_argument('--batch-size', type=int, default=20)
+    argparser.add_argument('--hidden-size', type=int, default=100)
     argparser.add_argument('--lr', type=float, default=1e-4)
     argparser.add_argument('--load', default=None)
-    argparser.add_argument('--num-iters', type=int, default=1000000)
+    argparser.add_argument('--num-iters', type=int, default=2000000)
     return argparser.parse_args()
 
 def train(out_dir, dim, seed, load_model=None):
@@ -44,19 +45,19 @@ def train(out_dir, dim, seed, load_model=None):
             # board_id: nn.Relu(100) >> nn.Relu(100) >> nn.Linear(dim) for board_id in boards
             board_id: nn.Linear(3, dim) for board_id in boards
         }
-        calibration_model = nn.Relu(dim + 3, 100) >> nn.Relu(100) >> nn.Linear(2)
+        calibration_model = nn.Relu(dim + 3, args.hidden_size) >> nn.Relu(args.hidden_size) >> nn.Linear(2)
         split_model = SplitModel(sensor_models, calibration_model, log_dir=out_dir, lr=args.lr, batch_size=args.batch_size)
     else:
         split_model = joblib.load(load_model)
     data = {}
-    print("Filtering round: %s" % args.round)
-    print("Filtering location: %s" % args.location)
+    print("Filtering: %s" % ignore)
     for board_id in boards:
         board_train = []
         for round, location in boards[board_id]:
-            if (args.round, args.location, args.board) == (round, location, board_id):
-                print("Removing: ", round, location, board_id)
-                continue
+            for r, l, b in ignore:
+                if (r, l, b) == (round, location, board_id):
+                    print("Removing: ", round, location, board_id)
+                    continue
             board_train.append(load(*(round, location, board_id))[0])
         if len(board_train) > 0:
             print("Loaded board[%u]: %u" % (board_id, len(board_train)))
@@ -83,4 +84,8 @@ if __name__ == "__main__":
     args = parse_args()
     fs = s3fs.S3FileSystem(anon=False)
     out_dir = Path(BUCKET_NAME) / args.experiment / args.name
+    ignore_round = list(map(int, args.round.split(",")))
+    ignore_location = args.location.split(",")
+    ignore_board = list(map(int, args.board.split(",")))
+    ignore = set(zip(ignore_round, ignore_location, ignore_board))
     train(out_dir, args.dim, args.seed, load_model=args.load)
