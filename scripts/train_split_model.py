@@ -54,10 +54,9 @@ def train(out_dir, dim, seed, load_model=None):
     for board_id in boards:
         board_train = []
         for round, location in boards[board_id]:
-            for r, l, b in ignore:
-                if (r, l, b) == (round, location, board_id):
-                    print("Removing: ", round, location, board_id)
-                    continue
+            if (round, location, board_id) in ignore:
+                print("Removing: ", round, location, board_id)
+                continue
             board_train.append(load(*(round, location, board_id))[0])
         if len(board_train) > 0:
             print("Loaded board[%u]: %u" % (board_id, len(board_train)))
