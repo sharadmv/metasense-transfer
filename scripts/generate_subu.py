@@ -214,21 +214,21 @@ def level2(out_dir, experiment_dir):
         test_result = benchmark(model, test_config + (board_id,))
         difference = train_result - test_result
         train_results = train_results.append({
-            'Model': model,
+            'Model': (board_id, train_config),
             'NO2 MAE': train_result[0, 0],
             'O3 MAE': train_result[0, 1],
             'NO2 CvMAE': train_result[1, 0],
             'O3 CvMAE': train_result[1, 1],
         }, ignore_index=True)
         test_results = test_results.append({
-            'Model': model,
+            'Model': (board_id, train_config),
             'NO2 MAE': test_result[0, 0],
             'O3 MAE': test_result[0, 1],
             'NO2 CvMAE': test_result[1, 0],
             'O3 CvMAE': test_result[1, 1],
         }, ignore_index=True)
         differences = differences.append({
-            'Model': model,
+            'Model': (board_id, train_config),
             'NO2 MAE': difference[0, 0],
             'O3 MAE': difference[0, 1],
             'NO2 CvMAE': difference[1, 0],

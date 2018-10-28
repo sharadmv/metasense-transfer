@@ -18,7 +18,7 @@ def load_subu(subu_path, models, name):
     subu_results = pd.read_csv(subu_path / 'level2' / 'test.csv')
     subu_results['Model'] = subu_results['Model'].apply(eval)
     locations = {'elcajon', 'donovan', 'shafter'}
-    rounds = {1, 2, 3}
+    rounds = {2, 3, 4}
     for i, result in subu_results.iterrows():
         board_id, trains = result['Model']
         r = set(x[0] for x in trains)
@@ -29,8 +29,12 @@ def load_subu(subu_path, models, name):
     subu_models = set(subu_results['Model'])
     for model in models:
         if model not in subu_models:
+            print(model)
             level1 = subu_level1[subu_level1['Model'] == model]
-            assert len(level1) == 1, level1
+            try:
+                assert len(level1) == 1, level1
+            except:
+                import ipdb; ipdb.set_trace()
             subu_results = subu_results.append(level1)
     subu_results['Calibration'] = name
     subu_results = subu_results.drop('Unnamed: 0', axis=1)
@@ -38,9 +42,10 @@ def load_subu(subu_path, models, name):
 
 def get_results(models):
     results = pd.DataFrame(columns=['Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'])
+    print(models)
     for model_name in tqdm.tqdm(models):
         model_path = Path(model_name)
-        model_split = model_path.split('/')[-1].split('-')
+        model_split = model_path.split('/')[-1].split('_')
         triple = (int(model_split[0]), model_split[1], int(model_split[2]))
         model_results = pd.read_csv(model_path / 'level1' / 'test.csv')
         model_results = model_results.drop('Unnamed: 0', axis=1)
@@ -63,7 +68,10 @@ def merge_results(split_results, subu_results):
             continue
         split_intersection = split_results[split_results['Model'] == model]
         subu_intersection = subu_results[subu_results['Model'] == model]
-        assert len(split_intersection) == 1 and len(subu_intersection) == 1
+        try:
+            assert len(split_intersection) == 1 and len(subu_intersection) == 1
+        except:
+            import ipdb; ipdb.set_trace()
         split_intersection = split_intersection.iloc[0]
         subu_intersection = subu_intersection.iloc[0]
         split_intersection['Training Size'] = subu_intersection['Training Size']
