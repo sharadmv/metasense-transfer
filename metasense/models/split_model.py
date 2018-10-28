@@ -78,9 +78,9 @@ class SplitModel(Model):
                     best = (
                         self.get_weights(), score[0].mean()
                     )
-                    if dump_every is not None:
-                        cb(self)
                     print("New Best:", best[1], score)
+            if i % 10000 == 0 and dump_every is not None:
+                cb(self)
         score = self.score(sensor_valid, env_valid, board_valid, y_valid)
         if score[0].mean() < best[1]:
             best = (
