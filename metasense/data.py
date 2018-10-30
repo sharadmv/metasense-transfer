@@ -21,5 +21,7 @@ def load(round, location, board_id, root_dir=Path('data/final'), seed=0):
     data['board'] = board_id
     data['location'] = location
     data['round'] = round
+    data = data[~(data['temperature'] > 65)]
+    data = data[~(data['absolute-humidity'] > 10)]
     train, test = train_test_split(data, test_size=0.2, random_state=seed)
     return train, test

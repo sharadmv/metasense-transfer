@@ -1,10 +1,10 @@
 from . import models
 
 BOARD_CONFIGURATION = {
-    1: {
+    4: {
         'elcajon': {11, 12, 13},
-        'donovan': {19, 21},
-        'shafter': {15, 18},
+        'donovan': {17, 19, 21},
+        'shafter': {15, 18, 20},
     },
     2: {
         'elcajon': {17, 19, 21},

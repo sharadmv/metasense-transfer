@@ -48,11 +48,11 @@
 
 \begin{abstract}
 
-Advances in environmental monitoring technologies are making it increasingly possible for concerned communities and citizens to collect data in an effort to better understand their local environment and potential exposures. However, communities and citizen scientists often lack the funding, time, and expertise to conduct conventional research projects. While there are challenges related to the quality of data from these instruments, these tools make it possible to collect data with increased temporal and spatial resolution providing data on new scales with new levels of detail. This type of data has the potential to empower people to make personal decisions about their exposure and support the development of local strategies for reducing pollution and improving health outcomes.
+Advances in environmental monitoring technologies are making it increasingly possible for concerned communities and citizens to collect data in an effort to better understand their local environment and potential exposures. However, communities and citizen scientists often lack the funding, time, and expertise to conduct conventional research projects. While there are challenges related to the quality of data from instruments available to citizen scientists, these tools make it possible to collect data with increased temporal and spatial resolution providing data on a large scale with unprecedented levels of detail. This type of data has the potential to empower people to make personal decisions about their exposure and support the development of local strategies for reducing pollution and improving health outcomes. \todo{(How?)} 
 
-One of the challenges related to data quality has been calibration – often sensors are calibrated via field calibration or normalization. Field calibration involves co-locating sensor systems with high-quality reference instruments, then techniques such as multiple-linear regression or machine learning are used to develop a calibration model for converting raw sensor signals to concentrations. While this method does help to correct for the complex temperature, humidity, and background air quality that impact these sensors (in addition to the target gas), there are concerns that calibration models may be overfit to a given location or set of conditions. Calibration models overfit to a particular location may provide less reliable data as sensors are moved to field sites, as is the current practice. Furthermore, as we consider the idea of individuals carrying personal, mobile air quality monitoring systems we will need to ensure that the calibration models the users rely on are robust across a variety of new locations.
+One of the challenges related to data quality of mobile sensors has been calibration – often sensors are calibrated via field calibration or normalization \todo{(To what does normalization refer?)}. Field calibration involves co-locating sensor systems with high-quality reference instruments for extended periods, then machine learning and model fitting techniques, such as multiple-linear regression, are used to develop a calibration model for converting raw sensor signals to concentrations. While this method helps to correct for dependencies to ambient conditions (i.e. temperature, humidity, and pressure) and cross-sensitivities with non-target pollutants, there are concerns that calibration models may be overfit to a given location or set of conditions. Calibration models commonly overfit to a particular location on account of the high correlation between diurnal cycles and environmental conditions with pollutant levels. Sensors trained at a particular field site may provide less reliable data as sensors are moved to new locations. Furthermore, as we consider the idea of individuals carrying personal, mobile air quality monitoring systems we will need to ensure that the calibration models the users rely on are robust across a variety of new locations.
 
-We deployed three sensor packages to three different sites, each with reference monitors, and then rotated the sensor packages through the sites. Two sites in San Diego, CA, and a third outside of Bakersfield, CA, offered varying degrees of differences in environmental conditions, overall air quality composition, and pollutant concentrations. This deployment offered the opportunity to compare how different calibration techniques perform when sensors are moved to new locations as well as exploring what factors impact sensor performance in new locations, for example factors such as new environmental conditions versus differing overall pollutant compositions. Included in our results are also recommendations for building the most robust calibration models, as well as recommendations to increase robustness given the typical constraints of a community-based studies.  \emph{Overall, we are interested in how we can improve calibration robustness as sensors become increasingly mobile thus supporting emerging citizen science efforts.}
+We deployed three sensor packages to three different sites, each with reference monitors, and then rotated the sensor packages through the sites. Two sites in San Diego, CA, and a third outside of Bakersfield, CA, offered varying degrees of differences in environmental conditions, overall air quality composition, and pollutant concentrations. This deployment offered the opportunity to compare how different calibration techniques perform when sensors are moved to new locations as well as exploring what factors impact sensor performance in new locations, for example factors such as new environmental conditions versus differing overall pollutant compositions. Included in our results are also recommendations for building the most robust calibration models, as well as recommendations to increase robustness given the typical constraints of a community-based studies \todo{(what are these recommendations?)}. \emph{Overall, we are interested in how we can improve calibration robustness as sensors become increasingly mobile thus supporting emerging citizen science efforts.}
 
 \end{abstract}
 
@@ -60,24 +60,26 @@ We deployed three sensor packages to three different sites, each with reference 
 
 \emph{Overarching research question: If one has a lot of low-cost sensors to calibrate, what is a (more) cost-effective method for generating a highest quality model for them?}
 
-As the use of low-cost sensor systems for citizen science and community-based research expands, improving the robustness of calibration for low-cost sensors will support these efforts by ensuring more reliable data and enabling a more effective use of the often-limited resources of these groups. These next-generation technologies have the potential to reduce the cost of air quality monitoring instruments by orders of magnitude, increase the spatial and temporal resolution data, and provide new options for personal exposure monitoring [1].  While there still exist challenges and limitations, these attributes make low-cost sensing an attractive option for concerned citizens and communities interested in investigating local air quality issues. 
+As the use of low-cost sensor systems for citizen science and community-based research expands, improving the robustness of calibration for low-cost sensors will support these efforts by ensuring more reliable data and enabling a more effective use of the often-limited resources of these groups. These next-generation technologies have the potential to reduce the cost of air quality monitoring instruments by orders of magnitude, increase the spatial and temporal resolution data, and provide new options for personal exposure monitoring \todo{[1]}.  While there still exist challenges and limitations, these attributes make low-cost sensing an attractive option for concerned citizens and communities interested in investigating local air quality issues. 
 
-As has been demonstrated by previous studies, air quality can vary on small temporal and spatial scales [2,3]. This variability can make it difficult to estimate exposure or understand the impact of local sources suing data from our existing monitoring networks [4], which provide information at a more regional scale. Furthermore, studies have highlighted instances where air quality guidelines have been exceeded on small spatial scales, in so called ‘hot spots’ [5]. This may be of particular concern for environmental justice communities, where not only may residents be subject to higher concentrations of pollutants, but also there may be a lack of continuous monitoring. One group already using low-cost sensors to provide more detailed and locally specific air quality information is the Imperial County Community Air Monitoring Network [6]. The hope is that this network of particulate monitors could help to inform local action (e.g., keeping kids with asthma inside), or open the door to conversations with regulators [6]. In another example, researchers are investigating the potential for wearable monitors to improve personal exposure estimates [7]. 
+As has been demonstrated by previous studies, air quality can vary on small temporal and spatial scales \todo{[2,3]}. This variability can make it difficult to estimate exposure or understand the impact of local sources using data from existing monitoring networks \todo{[4]}, which provide information at a more regional scale. Furthermore, studies have highlighted instances where air quality guidelines have been exceeded on small spatial scales, in so called ‘hot spots’ \todo{[5]}. This may be of particular concern for environmental justice communities, where residents are unknowingly exposed to higher concentrations of pollutants due to a lack of proximity to local monitoring stations. One group already using low-cost sensors to provide more detailed and locally specific air quality information is the Imperial County Community Air Monitoring Network \todo{[6]}. The hope is that this network of particulate monitors could help to inform local action (e.g., keeping kids with asthma inside), or open the door to conversations with regulators \todo{[6]}. In another example, researchers are investigating the potential for wearable monitors to improve personal exposure estimates \todo{[7]}. 
 
-Despite the growing use of sensors, an ongoing concern related to sensors is data quality [8]. Low-cost sensors, particularly those designed to detect gas-phase pollutants, are often cross-sensitive to changing environmental conditions (e.g., temperature or humidity) and sometimes other pollutant species as well.  Much work has gone into exploring calibration methods, models, and techniques that incorporate corrections for these cross-sensitives and make measurements in complex ambient environments possible [9, 10, 11, 12, 13]. While calibration models differ, these studies have all utilized co-locations with high-quality reference instruments in the field, instruments such as Federal Reference Method/Equivalence monitors. This co-located data allows predictive, calibration models to be built for the conditions which the sensors will experience in the field (e.g., diurnal environmental trends and background pollutants). A recurring observation has been that laboratory calibrations, while valuable for characterizing a sensor’s abilities, perform more poorly than field calibrations likely due to an inability to replicate complex conditions in a chamber [14, 15]. However, one aspect of calibration and sensor quantification that has yet to be fully explored is how robust these field calibrations are in new locations or for mobile applications.
+Despite the growing use of sensors, an ongoing concern related to sensors is data quality \todo{[8]}. Low-cost sensors, particularly those designed to detect gas-phase pollutants, are often cross-sensitive to changing environmental conditions (e.g., temperature or humidity) and sometimes other pollutant species as well.  Much work has gone into exploring calibration methods, models, and techniques that incorporate corrections for these cross-sensitives and make measurements in complex ambient environments possible \todo{[9, 10, 11, 12, 13]} \todo{(Should we expand on some of the top papers and briefly mention their methods?)}. While calibration models differ, these studies have all utilized co-locations with high-quality reference instruments in the field, instruments such as Federal Reference Method/Equivalence monitors \todo{[cite]}. This co-located data allows predictive, calibration models to be built for the conditions which the sensors will experience in the field (e.g., diurnal environmental trends and background pollutants). A recurring observation has been that laboratory calibrations, while valuable for characterizing a sensor’s abilities, perform poorly compared to field calibrations likely due to an inability to replicate complex conditions in a chamber \todo{[14, 15]}. However, one aspect of calibration and sensor quantification that has yet to be fully explored is how robust these field calibrations are in new locations or for mobile applications. 
 
-There are a few examples in the existing literature of sensors being calibrated in one location and tested in another and finding that there is a decrease in performance in new locations where condition likely differ from calibration conditions. For example, in one study, researchers testing a field calibration for electrochemical SO2 sensors from one location in Hawaii and at another location also in Hawaii found a small drop in correlation between the reference and converted sensor data [16]. This primary difference in datasets here was attributed to the testing location being a cleaner environment [16]. Another researcher observed that metal-oxide O3 and non-dispersive infrared CO2 sensors calibrated in an oil and gas basin perform better in a similar environment (i.e., another oil and gas basin) further away, rather than in a contrasting environment (i.e., an urban area) closer in proximity [17]. Another study utilizing electrochemical CO, NO, NO2, and O3 sensors found that performance varied spatially and temporally according to changing atmospheric composition and meteorological conditions [15]. This team also found calibration model parameters differed based on where a single sensor node was co-located (i.e., a site on busy street verses a calm street), supporting the need to calibrate for given conditions [15]. Highlighting the need for a more comprehensive understanding of how and why calibration performance changes when sensors are moved. A better understanding of this issue will inform potential strategies to mitigate these effects. Studies have already begun to utilize advanced machine learning techniques to improve sensor calibration models [13, 18, 19]. It’s possible these advanced techniques could also be leveraged in innovative ways to improve calibration reliability across new data sets. 
+There are a few examples in the existing literature of sensors being calibrated in one location and tested in another and finding that there is a decrease in performance in new locations where condition likely differ from calibration conditions. For example, in one study, researchers testing a field calibration for electrochemical SO2 sensors from one location in Hawaii and at another location also in Hawaii found a small drop in correlation between the reference and converted sensor data [16]. This primary difference in datasets here was attributed to the testing location being a cleaner environment [16]. Another researcher observed that metal-oxide O3 and non-dispersive infrared CO2 sensors calibrated in an oil and gas basin perform better in a similar environment (i.e., another oil and gas basin) further away, rather than in a contrasting environment (i.e., an urban area) closer in proximity [17]. Another study utilizing electrochemical CO, NO, NO2, and O3 sensors found that performance varied spatially and temporally according to changing atmospheric composition and meteorological conditions [15]. This team also found calibration model parameters differed based on where a single sensor node was co-located (i.e., a site on busy street verses a calm street), supporting the need to calibrate for given conditions [15] \todo{(Or should we try to explain this as the model was overfitting to a given environment? instead of needing to calibrate for given conditions)}. Highlighting the need for a more comprehensive understanding of how and why calibration performance changes when sensors are moved. A better understanding of this issue will inform potential strategies to mitigate these effects. Studies have already begun to utilize advanced machine learning techniques to improve sensor calibration models [13, 18, 19]. It is possible these advanced techniques could also be leveraged in innovative ways to improve calibration reliability across new data sets. \todo{(We should add the new papers that Ashley sent out)}
  
 To explore this issue we designed a rotating deployment that included co-locations of sensor systems with three reference monitoring stations – two near the city of San Diego, CA and one in a rural area outside of Bakersfield, CA. During this deployment, a set of sensor systems was placed at each station and these were then rotated through each site. While these systems included other sensor types, this analysis focuses on data from electrochemical O3 and NO2 sensors. Pollutants that would be of interest to individuals and communities given the dangers associated with ozone exposure [20], and nitrogen dioxide’s role in ozone formation. Using this dataset, we explore (1) how well different calibration techniques hold up across new environments, (2) what is causing a drop in performance in new locations, (3) and solutions and recommendations for sensor users to ensure the most robust calibration possible. 
 
 \section{Methods}
 
 \subsection{Study Overview and Sampling Sites}
-For this deployment, we coordinated with three regulatory monitoring sites and rotated sensor packages through each site over the course of approximately six months. Each monitoring site included reference measurements for NO2 and O3, along with various other instruments. Two sites were in San Diego and the third was further north, outside of Bakersfield, CA. The first San Diego site was in a suburban area near an elementary school (El Cajon Site). The second was in a more rural approximately two miles from the border crossing for heavy duty vehicles in Otay Mesa (Donovan Site). The third site was in Shafter CA, in a neighborhood in a rural community with nearby agriculture as well as oil and gas extraction activities. We expect to see some unique emission trends particularly at the Donovan and Shafter sites between the presence of heavy duty vehicles, potentially idling for long periods of time, and the oil and the presence of gas activity respectively. We expect the El Cajon site to resemble a typical urban/suburban site in terms of emissions profiles.  Given the unique local sources, particularly at the second and third sites, we expected to see different pollutant compositions and ranges at each of these sites as well as different temperature and humidity profiles. 
-To begin, each sensor package, which included three MetaSense monitors and two additional sensor systems with a further variety of sensors, was placed at one of our three sites. These systems were then co-located for a given period of time before being rotated to the next site. Each sensor experienced a co-location at each site, and finished the fourth round at it’s starting position. \autoref{tab:board-rotations} lists the dates for each rotation as well as where each sensor system was located for each rotation. 
+For this deployment, we coordinated with three regulatory monitoring sites and rotated sensor packages through each site over the course of approximately six months. Each monitoring site included reference measurements for NO2 and O3, along with various other instruments. Two sites were in San Diego and the third was further north, outside of Bakersfield, CA. The first San Diego site was in a suburban area near an elementary school (El Cajon Site). The second was in a more rural approximately two miles from the border crossing for heavy duty vehicles in Otay Mesa (Donovan Site). The third site was in Shafter CA, in a neighborhood in a rural community with nearby agriculture as well as oil and gas extraction activities. We expect to see unique emission trends between sites \todo{(What are we trying to say here?)} particularly at the Donovan and Shafter sites between the presence of heavy duty vehicles, potentially idling for long periods of time, and the oil and the presence of gas activity respectively. We expect the El Cajon site to resemble a typical urban/suburban site in terms of emissions profiles.  Given the unique local sources, particularly at the second and third sites, we expected to see different pollutant compositions and ranges at each of these sites as well as different temperature and humidity profiles \todo{(We should list expected temp and humidity profiles for each station to support this claim)}.
+
+Each sensor package, which included three MetaSense monitors and two additional sensor systems \todo{(Should we list the other sensor systems?)} with a further variety of sensors, was placed at one of our three sites. These systems were then co-located for a given period of time before being rotated to the next site. Each sensor experienced a co-location at each site, and finished the fourth round at it’s starting position. \autoref{tab:board-rotations} lists the dates for each rotation as well as where each sensor system was located for each rotation. 
 
 \todo{Add dates for rotations}
-\todo  {add environmental and pollutant distributions here too}
+
+\todo{Add environmental and pollutant distributions here too}
 
 \begin{figure}[H]
 \centering
@@ -106,11 +108,11 @@ To begin, each sensor package, which included three MetaSense monitors and two a
 \end{table}
 
 
-\subsection{Hardware, Sensor Signals, and Processing}
+\subsection{MetaSense Monitor Description} %Hardware, Sensor Signals, and Processing}
 
 A low-cost air quality sensing platform was developed to interface with commercially available sensors [cite SPIE2017 paper, which has initial description]. The platform was designed to be mobile, modular, and extensible, enabling end users to configure the platform with sensors suited to their monitoring needs. It interfaces with the Particle Photon or Particle Electron [cite] platforms, which contain a 24 MHz ARM Cortex M3 microprocessor and a WiFi or cellular module, respectively. The platform can interface with any sensor that communicates using standard communication protocols (i.e. analog, I2C, SPI, UART, USB, BLE) and supports an input voltage of 3.3 V or 5.0 V. The platform can communicate results to nearby devices using BLE, WiFi, or 2G/3G cellular, depending on requirements.
 
-Our configuration utilized electrochemical sensors for traditional air quality indicators (NO2, CO, Ox), nondispersive infrared sensors for CO2, photoionization detectors for volatile organic compounds (VOCs), and a variety of environmental sensors (temperature, humidity, barometric pressure). The electrochemical sensors (NO2: Alphasense NO2-A43F, Ox: Alphasense O3-A431, and CO: Alphasense CO-A4 are mounted to a companion analog front end (AFE) from Alphasense, which assists with voltage regulation and signal amplification. Electrochemical sensors offer a high level of accuracy at a low current consumption. Each sensing element has two electrodes which give analog outputs for the working and auxiliary electrodes. The difference in signals is approximately linear with respect to the ambient target gas concentration but have dependencies with temperature, humidity, barometric pressure, and cross-sensitivities with other gases. The electrochemical sensors generate an analog output, which is connected to a pair of ADCs (TI ADS6115). 
+Our configuration utilized electrochemical sensors for traditional air quality indicators (NO2, CO, Ox), nondispersive infrared sensors for CO2, photoionization detectors for volatile organic compounds (VOCs), and a variety of environmental sensors (temperature, humidity, barometric pressure). The electrochemical sensors (NO2: Alphasense NO2-A43F, Ox: Alphasense O3-A431, and CO: Alphasense CO-A4 are mounted to a companion analog front end (AFE) from Alphasense, which assists with voltage regulation and signal amplification. Electrochemical sensors offer a high level of accuracy at a low current consumption. Each sensing element has two electrodes which give analog outputs for the working electrode (WE) and auxiliary electrodes (AE). The difference in signals is approximately linear with respect to the ambient target gas concentration but have dependencies with temperature, humidity, barometric pressure, and cross-sensitivities with other gases. The electrochemical sensors generate an analog output, which is connected to a pair of ADCs (TI ADS6115) and converted into a digital representation of the measured voltage, which is later used as inputs for our machine learning models.
 
 Modern low-cost electrochemical sensors offer a low cost and low power method to measure pollutants, but currently available sensors are not designed with air pollution monitoring as the primary focus: the overall sensing range is too wide and the noise levels are too high. For example, the commercially available sensors for NO2, Ox, and CO have a measurement range of 20, 20, and 500 ppm, respectively, which is significantly higher than the unhealthy range proposed by the United States Air Quality Index. Unhealthy levels for NO2 at 1-hour exposure range from 0.36 – 0.65 ppm, O3 at 1-hour exposure from 0.17 – 0.20 ppm, and CO at 8-hour exposure from 12.5 – 15.4 ppm. Along with the high range, the noise levels of the sensors make distinguishing whether air quality is Good or not difficult. Using the analog front end (AFE) offered by Alphasense, the noise levels for NO2, Ox, and CO have standard deviations of 7.5 ppb, 7.5 ppb, and 10 ppb, respectively. These standard deviations are large compared to the signal level for NO2 and Ox measurements, which range between 0 – 35 ppb and 12 – 60 ppb during the 3 month testing period, respectively.
 
@@ -133,48 +135,76 @@ For longer term static deployments, such as the presented case study that lasted
 
 \subsection{Quantification Techniques and Approaches}
 
-Sensor calibration is the process of developing and training models to convert raw board voltages into usable pollutant concentrations. We formalize sensor calibration as a regression problem, with input features $x$ representing board voltages and environmental measurements (O3 voltage, NO2 voltage, CO voltage, temperature, pressure, humidity), and $y$ representing a set of pollutant concentrations to predict (O3 ppb, NO2 ppb).
-The goal is to develop some parameterized function $h_\theta(x)$
-such that $h_\theta(x) \approx y$. This optimization is formalized as minimizing expected error according to some data distribution $p(x, y)$ and loss function $L(h_\theta(x), y)$, i.e. $\argmin_\theta \mathbb{E}_{p(x, y)}\left[L(h_\theta(x), y)\right]$. In our case, we use the commonly used mean-squared error (MSE) loss function, and the expectation
-over our data distribution is computed empirically with data.
-The restriction of this methodology, however, is when the data distribution $p(x, y)$ changes, the performance of our  model is likely to drop. 
+\todo{Overall questions we need to answer: How is data preprocessed? What filters are we applying? How are we aligning in time? How do we handle different sampling frequencies? How do we handle missing data? What does the pipeline look like? What engine are we using for performing training? }
 
-In this paper, we examine how well this distributional assumption holds in practice, as we often want to deploy sensors in locations different from where they were calibrated. Specifically, we analyze how certain models perform when their data distribution changes. As previously described, we rotated boards across three locations in California (El Cajon, Donovan, Shafter) and collected colocation data. 
-By training a calibration model on some subset of the sites and testing on the other subset, we effectively measure how well particular models ``transfer'' to other sites.
+Sensor calibration is the process of developing and training models to convert raw sensor voltages from WE and AE into usable pollutant concentrations. We formalize sensor calibration as a regression problem, with input features $x$ representing board voltages and environmental measurements (O3 voltage, NO2 voltage, CO voltage, \todo{(Why are we using a single value for voltage instead of inputting both electrodes? We need to explain a bit.)} temperature, pressure, humidity), and $y$ representing a set of pollutant concentrations to predict (O3 ppb, NO2 ppb).
+To obtain these ground-truth gas concentrations $y$ to go along
+with the board readings, we colocated
+the MetaSense boards with EPA stations \todo{(official word?)}.
+After obtaining minute-averaged O3 and NO2
+concentrations from these EPA stations, we aligned them with
+minute-averaged readings from MetaSense boards
+to create a dataset consisting of $(x, y)$ pairs
+for each board.
 
-We focus on four different models: linear regression, 2-layer neural network, 4-layer neural network, and random forests. With each of these four models, we performed a suite of benchmarks that measure various transfer capabilities.
-In each stage of the benchmark, we progressively widen the training distribution by including data from more locations, while keeping the test set dataset from one location.
-A ``Level 1'' benchmark trains a model on one location and tests on another location, and a ``Level 2'' benchmark trains on two locations and tests on a third location. Finally, a ``Level 3'' benchmark trains on three locations and tests on of the three trained locations. Notably in a Level 3 benchmark, the train and test data distribution have explicit overlap, whereas in Level 1 and 2, there is no explicit overlap. 
-We also include a baseline ``Level 0'' benchmark, defined as the error of the model when trained and tested at the same location. 
+In regression, the goal is to develop a function $h_\theta(x)$
+such that $h_\theta(x) \approx y$. This optimization is often formalized as minimizing error over a training dataset $\{x_n, y_n\}_{n = 1}^N$ according to a loss function $L(h_\theta(x), y)$, i.e. 
+\begin{equation}
+\theta^* = \argmin_\theta \frac{1}{N}\sum_{n = 1}^N L(h_\theta(x_n), y_n)
+\end{equation}
+Models trained in this way, however, assume that predictions are made
+on data sampled from the training distribution. In practice,
+models will often overfit to the training distribution and when
+presented with out-of-examples, will produce incorrect predictions.
+In this paper, we examine how well this distributional assumption holds in a real-life case study, as in practice we want our sensors to be deployed in different locations from where they were calibrated. Specifically, we analyze how certain models perform when their data distribution changes. As previously described, we colocated MetaSense boards with EPA stations across three locations in California (El Cajon, Donovan, Shafter).
+By training a calibration model on a training data restricted to some sites and testing on the other site, we effectively measure how well particular models ``transfer'' to other sites.
+
+We focus on four different models: 
+\begin{enumerate}
+    \item \textbf{Linear regression:} we assume the functional form $h(x) \triangleq w^T x + b$, and $w$ and $b$ can be fit in closed form.
+    \item \textbf{Two-layer neural network:} we fit a two-hidden layer (200 wide) multilayer perceptron with rectified-linear unit activation functions and a final linear layer. We train this neural network using the Adam optimizer ($\beta_0 = 0.9, \beta_1 = 0.999$) and a learning rate of $1e-3$.
+    \item \textbf{Four-layer neural network:} Same as two-layer neural network, but four hidden layers of width 200 instead of two.
+    \item \textbf{Random forest:} We divide our data into five folds and train a random forest of size 100 on each fold, resulting in 500 trees.
+\end{enumerate}
+With each of these four models, we performed a suite of identical benchmarks that measure various model transfer capabilities. We first initially split all datasets uniformly at random into train and test subsets, reserving 20\% of each board's data for testing.
+In each benchmark, we progressively widen the training distribution by combining training data from more locations, while keeping the test set dataset from one location. We thus have four ``levels'' of benchmarks:
+\begin{itemize}
+    \item \textbf{Level 0:} train a model on one location and test on the same location
+    \item \textbf{Level 1:} train a model on one location and test on another location
+    \item \textbf{Level 2:} train a model on two locations and test on a third location 
+    \item \textbf{Level 3:} train on three locations and tests on each of same three. 
+\end{itemize}
+Notably in Level 0 and Level 3 benchmarks, the train and test data distribution have explicit overlap, whereas in Level 1 and 2, there is no explicit overlap. 
+In each of these benchmarks, we measure
+the mean-absolute error in the test set (although our models are trained with MSE, we evaluate with MAE to offer a closer comparison to the results from \citep{subu}).
 
 The goal of this benchmark suite is to evaluate how expanding the data distribution can improve model transferability. We expect Level 0 performance to be the best, as the train and test distribution are identical. We also expect Level 1 performance to be the worst, as the training distribution is the narrowest and Level 3 to be close to Level 0 performance, due to the overlap in train and test distributions. 
 Furthermore, we expect higher capacity models to overfit more to the training dataset, and thus have the biggest gap between Level 0 and Level 1. Thus, we expect linear regression to have more consistent performance across the benchmarks, followed by the 2-layer neural network, 4-layer neural network, and finally the random forest.
 
 We ran each benchmark across all permutations of our collected dataset,
-measuring mean absolute error (MAE) and the coefficient of variation of mean absolute error (CvMAE), to be consistent with results with \citet{subu},
+measuring mean absolute error (MAE) \todo{(Our loss function is minimizing for MSE. Why are we using MAE?)} and the coefficient of variation of mean absolute error (CvMAE), to be consistent with results with \citet{subu},
 where these two measures are defined as
 \begin{align*}
     \mathrm{MAE}(h(x), y) &= |h(x) - y| \\
     \mathrm{CvMAE}(h(x), y) &= \frac{1}{\textrm{Average conc. of pollutant}}|h(x) - y| \\
 \end{align*}
-The neural networks were both 200-wide were trained via the Adam optimization algorithm, using the best set of weights according to a validation set. The random forests were trained according to the training procedure set out in \citet{subu}.
 
 \subsection{A Method for Improving Transferability}
 
-The most straightforward method to improve model transferability is collecting more data.
-This is reflected by the Level 2 and Level 3 results. The improvement from adding more data indicates that collecting data from a wide distribution can help in model transferability.
+The most straightforward method to improve model transferability is collecting training data that more closely matches the test distribution.
+This is reflected by the Level 2 and Level 3 results. The improvement from adding more data indicates that collecting data from a wider distribution can help in model transferability.
 However, colocating sensors and moving them
 several times can be expensive and takes more time to collect the training data.
 
 Consider a collection of many boards. Previously, we would attribute each board $i$ with a calibration function $h_{\theta_i}(x)$, and fit this calibration function with colocated data.
-We propose using a calibration function split into two distinct steps: first, we pass in pollutant sensor voltages $x$ into a sensor-specific model, $s_{\theta_i}(x)$ (a function parametrized by $\theta_i$, which outputs a fixed dimensional vector $u$. This intermediate representation $u$ is concatenated with environment data $e$ is then passed into a global calibration model $c_\phi([u | e])$. For a single board, our final calibration function is $c_\phi([s_{\theta_i}(x) | e])$.
+We propose using a calibration function split into two distinct steps: first, we pass in pollutant sensor voltages $x$ into a sensor-specific model, $s_{\theta_i}(x)$ (a function parametrized by $\theta_i$, which outputs a fixed dimensional vector $u$ \todo{Add diagram}. This intermediate representation $u$ is concatenated with environment data $e$ is then passed into a global calibration model $c_\phi([u | e])$. For a single board, our final calibration function is $c_\phi([s_{\theta_i}(x) | e])$.
 In general, we use neural networks as the sensor-specific models and the global calibration models.
 
 The split model can be trained efficiently with stochastic gradient descent. Specifically, we first collect $N$ datasets for each board $D_i = \{x^{(i)}, e^{(i)}, y^{(i)}\}_{i = 1}^N$. We ensure each of these datasets is the same size by sampling each with replacement to artificially match the largest dataset. We then pool the datasets together into one dataset from which we sample minibatches. Each sensor-specific model will be trained only on data collected by its sensor, but the global calibration model will be trained on all the data. Furthermore, sensor-specific models will be encouraged to output intermediate representations $u$ that are compatible with each other, since they are all fed into the same global model to produce pollutant levels.
 
-This method has some key advantages over conventional calibration techniques. 
+This method has some key advantages over conventional calibration techniques. \todo{Has this been done before? Are there tradeoffs, such as taking longer to train?}
 The first is its ability to share information across both boards. 
-Suppose Board A is trained on Location 1 and Board B is trained on Location 2. Pooling the datasets and using a shared model will encourage the global calibration model to predict well in both locations, and thus the calibration models for both boards will have information about the other locations in them, hopefully improving transferability.
+Suppose Board A is trained on Location 1 and Board B is trained on Location 2 \todo{(Shouldn't we mention that the boards have to have some shared location? Or am I not understanding this correctly?)}. Pooling the datasets and using a shared model will encourage the global calibration model to predict well in both locations, and thus the calibration models for both boards will have information about the other locations in them, hopefully improving transferability.
 The second is more efficient utilization of data. By pooling data and training jointly, we effectively multiply our data size by the number of boards we collect data for.
 Finally, the split model enables us to calibrate new boards by colocating to match representation, which we discuss later.
 
@@ -182,12 +212,13 @@ To evaluate this split model, we perform a leave-one-out benchmark. Given our da
 
 
 \section{Results \& Discussion}
+\todo{How many data samples? What was the test/val/train split? Random distribution of samples into groups or segmented for continuous blocks? Should we discuss how one or the other might be more representitive of real use cases?}
 
 \subsection{Robustness of Different Sensor Quantification Techniques Across New Locations}
 
-We observe that on average, linear regression has the highest error across different benchmarks. However, its performance across those benchmarks is more consistent than the other models. On the other hand, we have random forests (RFs) which have on average the lowest error, but suffer from a large jump in error from Level 0 to Level 1. In fact, NN[2] has less Level 1 3rd-quartile error for O3 than RFs, and a similar error profile to RFs for NO2.
+We observe that on average, linear regression \todo{(What linear regression model did we use? Any sort of regularization? What variables did we put into the model? Have other groups tried this? How do our initial results compare to theirs (ie. did we collect sufficiently good data)?)} has the highest error across different benchmarks. However, its performance across those benchmarks is more consistent than the other models \todo{(What does this mean?)}. On the other hand, we have random forests (RFs) which have on average the lowest error, but suffer from a large jump in error from Level 0 to Level 1. In fact, NN[2] has less Level 1 3rd-quartile error for O3 than RFs, and a similar error profile to RFs for NO2 \todo{(Difficult to compare across plots. Is there a better way to show?)}.
 
-The advantage of RFs is mainly in Level 0 and Level 3 benchmarks, where the train and test distribution have explicit overlap. This indicates that RFs are much  more prone to overfitting in this problem than the neural networks and linear regression. In a scenario where sensors are deployed and immobile, RFs seem to be the appropriate model, but when the calibration location and deployment location are different, other methods will be necessary to obtain better performance. For example, neural networks appear a more consistent model after transfer than random forests.
+The advantage of RFs is mainly in Level 0 and Level 3 benchmarks, where the train and test distribution have explicit overlap. This indicates that RFs are much  more prone to overfitting in this problem than the neural networks and linear regression. In a scenario where sensors are deployed and immobile, RFs seem to be the appropriate model \todo{(How is an appropriate model defined? Isn't our argument that RFs are overfitting to local conditions and that our randomized intermingling of test/train points is causing RFs to artificially look good but they aren't actually calculating pollution values from input electrode data but rather from environmental conditions?)}, but when the calibration location and deployment location are different, other methods will be necessary to obtain better performance. For example, neural networks appear a more consistent model after transfer than random forests \todo{("appear" is a soft comparison. How do they quantitatively compare? By what percent are neural networks better?)}.
 
 \begin{figure}[H]
 \centering
@@ -199,7 +230,7 @@ The advantage of RFs is mainly in Level 0 and Level 3 benchmarks, where the trai
 \includegraphics[width=\textwidth]{results/linear/o3.png}
 \caption{O3}
 \end{subfigure}
-\caption{Results for linear regression. Error is in parts per billion}
+\caption{Results for linear regression. Error is in parts per billion \todo{(How should these plots be interpreted? What is being plotted? Are these different trials of the same network with different randomized starting seeds? Are these distributions of the range of all sensing data combined?)}}
 \label{fig:results-linear}
 \end{figure}
 
@@ -245,6 +276,8 @@ The advantage of RFs is mainly in Level 0 and Level 3 benchmarks, where the trai
 \label{fig:results-subu}
 \end{figure}
 
+\iffalse
+
 \begin{itemize}
     \item  \emph{Current techniques assume that the conditions of sensor use match those of calibration.  How reasonable are these assumptions in practice?}
     \begin{itemize}
@@ -260,20 +293,35 @@ The advantage of RFs is mainly in Level 0 and Level 3 benchmarks, where the trai
         \item include data about RF leaves
     \end{itemize}
 \end{itemize}
+\fi
 
 Our hypothesis as to why models degrade after transfer is that the distribution
 of pollutant values and environmental factors differs across location and time. When
-a model is fit to one distribution, it performs poorly on others due to overfitting.
+a model is fit to one distribution, it performs poorly on others due to overfitting \todo{(perhaps add something like: the model is overfitting to ambient environmental conditions and not the sensor reading. Many pollutants change with the diurnal cycle of the earth (eg. NO2 turning into O3 only when there is UV light, so NO2 is bigger at night, which is typically cooler and more/less humidity).)}.
 We first investigate how these data distributions differ. Over each location and round, pollutant values can be highly variable. This is reflected, for example, in \autoref{fig:no2-rounds} where Shafter has higher values of NO2 in Round 1 and 2. Furthermore, in \autoref{fig:o3-rounds}, the distribution of O3 changes remarkably across round and location.
-Similarly, environmental factors change significantly across location and time, which can be seen in \autoref{fig:temperature-rounds} and \autoref{fig:humidity-rounds}.
+Similarly, temperature and humidity change significantly across location and round, which can be seen in \autoref{fig:temperature-rounds} and \autoref{fig:humidity-rounds}.
 
-\todo{add scatter plot analysis here}
+To determine whether models overfit to a particular feature, we evaluate their train and test performance on the datasets with and without the feature. We found that (models overfit to temperature) \todo{fill in this section}.
+
+
+
+Another way of examining this issue is comparing the raw sensor signal from each location. Figure X depicts data from the O3 sensor, from each site that has been matched by similar temperature, humidity, and ozone values. We would expect the same conditions to result in the same raw value from the sensor, but as we can see from the plots this is not the case. Furthermore, there is more correlation when comparing the values within a site versus between sites - this seems to suggest that there are location specific conditions that impact our sensor data (possibly different background compositions). Either way, it is important to note that more factors than temperature, humidity, and target gas concentration can impact sensor signal.  
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{writeup/img/plots.png}
+\caption{Scatter plots illustrating consistency of sensor behavior}
+\label{fig:img-label}
+\end{figure}
+
 
 \subsection{Approaches to Increase the Robustness of Calibrations}
 
+\todo{How is this different than the split level outlined in the methods section? Do we have a more detailed results write up for this section?}
+
 In this section, we detail a method to share models across different boards, effectively increasing the amount of data each board is trained on. This method also enables a new technique for colocating boards. We evaluate the split model described in Section 2.4, by performing a leave-one-out benchmark. Of nine boards across three locations, we train a split model on all board/location pairs except for one, which is used for testing. 
 We performed this evaluation on all possible held out locations (i.e. training a split model on all our datasets but one), which results pictured in \autoref{fig:split-comparison}.
-In these results, our model on average has lower MAE and CvMAE than the random forest model, with an especially significant improvement on NO2 prediction. We found that held out boards calibrated in this way had only a small drop in performance compared to when they were included in the global model.
+In these results, our model on average has lower MAE and CvMAE than the random forest model \todo{(Than which random forest model? Than the random forest model that was constructed using data from only one board and how many sites (ie. level 0, level 1, level 2)?)}, with an especially significant \todo{"significant" carries significant meaning to ML and stats communities. Do we actually have statistical significance?} improvement on NO2 prediction. We found that held out boards calibrated in this way had only a small drop in performance compared to when they were included in the global model.
 
 \begin{figure}[H]
 \begin{subfigure}{0.49\textwidth}
@@ -296,13 +344,14 @@ In these results, our model on average has lower MAE and CvMAE than the random f
 \label{fig:split-comparison}
 \end{figure}
 
-This split architecture enables cheaper calibration of new boards. 
+\todo{(Add graphic to help explain)}This split architecture enables cheaper calibration of new boards. 
 Suppose we have a set of $N$ calibrated boards and are presented with an uncalibrated $N + 1$-th board. The safest way to calibrate this new board would be to colocate it with a ground-truth sensor and train a model. This restricts the datasets to train a newer sensor on to ground-truth locations. 
 
 However, suppose we had a fleet of low-cost sensors already deployed. 
 A more efficient calibration method would be to colocate it with one of our $N$ calibrated boards and train a model to match the pollutant levels outputted by its calibration function. This risks compounding errors across models, however. 
 We propose calibrating the $N+1$-th sensor to match the intermediate representation outputted by colocated low-cost sensors. These intermediate representations are meant to be robust to changes in location so training to match these representation will hopefully result in a robust calibration model. We analyze this potential calibration technique by holding out a board from our datasets and training a split model. We then simulate calibrating the held out board by training a sensor model to match the representations produced by another board it was colocated with. We then use this new sensor model with the global calibration function to produce pollutant values.
 
+\iffalse
 
 \begin{itemize}
     \item Given these failure modes, how can data collection and model training be improved to overcome these failures?
@@ -327,6 +376,7 @@ We propose calibrating the $N+1$-th sensor to match the intermediate representat
           \item Match new sensor to the global model through co-location with one of the calibrated sensors
       \end{itemize}
 \end{itemize}
+\fi
 
 \subsection{Additional Observations and Recommendations}
 
