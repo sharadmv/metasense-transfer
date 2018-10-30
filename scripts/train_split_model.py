@@ -24,7 +24,7 @@ def parse_args():
     argparser.add_argument('--round', default=None, type=str)
     argparser.add_argument('--board', default=None, type=str)
     argparser.add_argument('--dim', type=int, default=3)
-    argparser.add_argument('--batch-size', type=int, default=20)
+    argparser.add_argument('--batch-size', type=int, default=10)
     argparser.add_argument('--hidden-size', type=int, default=100)
     argparser.add_argument('--lr', type=float, default=1e-4)
     argparser.add_argument('--load', default=None)
@@ -42,8 +42,8 @@ def train(out_dir, dim, seed, load_model=None):
                 boards[board_id].add((round, location))
     if load_model is None:
         sensor_models = {
-            # board_id: nn.Relu(100) >> nn.Relu(100) >> nn.Linear(dim) for board_id in boards
-            board_id: nn.Linear(3, dim) for board_id in boards
+            board_id: nn.Relu(100) >> nn.Relu(100) >> nn.Linear(dim) for board_id in boards
+            # board_id: nn.Linear(3, dim) for board_id in boards
         }
         calibration_model = nn.Relu(dim + 3, args.hidden_size) >> nn.Relu(args.hidden_size) >> nn.Linear(2)
         split_model = SplitModel(sensor_models, calibration_model, log_dir=out_dir, lr=args.lr, batch_size=args.batch_size)
@@ -75,6 +75,7 @@ def train(out_dir, dim, seed, load_model=None):
     def cb(model):
         with fs.open(str(out_path / 'model_latest.pkl'), 'wb') as fp:
             joblib.dump(split_model, fp)
+    print("Total data size:", data.shape)
     split_model.fit(data[sensor_features], data[env_features], data['board'], data[Y_features], dump_every=(out_dir / 'models' / 'model_latest.pkl', 1000), n_iters=args.num_iters, cb=cb)
     with fs.open(str(out_path / 'model.pkl'), 'wb') as fp:
         joblib.dump(split_model, fp)

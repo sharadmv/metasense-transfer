@@ -72,7 +72,7 @@ class SplitModel(Model):
                     self.learning_rate: self.lr / 100 if i > int(0.8 * n_iters) else self.lr
                 })
                 writer.add_summary(summary, i)
-            if i % 1000 == 0:
+            if i % 10000 == 0:
                 score = self.score(sensor_valid, env_valid, board_valid, y_valid)
                 if score[0].mean() < best[1]:
                     best = (

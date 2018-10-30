@@ -1,13 +1,13 @@
 set -x
-#python scripts/train_split_model.py splits-500-100 4_elcajon_11-2_shafter_11 --round 4,2  --location elcajon,shafter --board 11,11
-#python scripts/train_split_model.py splits-500-100 4_elcajon_12-2_shafter_12 --round 4,2  --location elcajon,shafter --board 12,12
-#python scripts/train_split_model.py splits-500-100 4_elcajon_13-2_shafter_13 --round 4,2  --location elcajon,shafter --board 13,13
-#python scripts/train_split_model.py splits-500-100 4_donovan_17-2_elcajon_17 --round 4,2  --location donovan,elcajon --board 17,17
-python scripts/train_split_model.py splits-500-100 4_donovan_19-2_elcajon_19 --round 4,2  --location donovan,elcajon --board 19,19
-python scripts/train_split_model.py splits-500-100 4_donovan_21-2_elcajon_21 --round 4,2  --location donovan,elcajon --board 21,21
-python scripts/train_split_model.py splits-500-100 4_shafter_15-2_donovan_15 --round 4,2  --location shafter,donovan --board 15,15
-python scripts/train_split_model.py splits-500-100 4_shafter_18-2_donovan_18 --round 4,2  --location shafter,donovan --board 18,18
-python scripts/train_split_model.py splits-500-100 4_shafter_20-2_donovan_20 --round 4,2  --location shafter,donovan --board 20,20
+python scripts/train_split_model.py splits-500-3relu 4_elcajon_11 --round 4  --location elcajon --board 11 --dim 3 --hidden-size 100 --num-iter 1000000
+python scripts/train_split_model.py splits-500-3relu 4_elcajon_12 --round 4  --location elcajon --board 12 --dim 3 --hidden-size 100 --num-iter 1000000
+python scripts/train_split_model.py splits-500-3relu 4_elcajon_13 --round 4  --location elcajon --board 13 --dim 3 --hidden-size 100 --num-iter 1000000
+python scripts/train_split_model.py splits-500-3relu 4_donovan_17 --round 4  --location donovan --board 17 --dim 3 --hidden-size 100 --num-iter 1000000
+#python scripts/train_split_model.py splits-500-100 4_donovan_19 --round 4  --location donovan --board 19 --dim 100 --hidden-size 500
+#python scripts/train_split_model.py splits-500-100 4_donovan_21 --round 4  --location donovan --board 21 --dim 100 --hidden-size 500
+#python scripts/train_split_model.py splits-500-100 4_shafter_15 --round 4  --location shafter --board 15 --dim 100 --hidden-size 500
+#python scripts/train_split_model.py splits-500-100 4_shafter_18 --round 4  --location shafter --board 18 --dim 100 --hidden-size 500
+#python scripts/train_split_model.py splits-500-100 4_shafter_20 --round 4  --location shafter --board 20 --dim 100 --hidden-size 500
 
 #python scripts/train_split_model.py splits-500-100 2_elcajon_17-3_shafter_17 --round 2,3  --location elcajon,shafter --board 17,17
 #python scripts/train_split_model.py splits-500-100 2_elcajon_19-3_shafter_19 --round 2,3  --location elcajon,shafter --board 19,19
