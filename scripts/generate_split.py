@@ -62,7 +62,6 @@ def get_triples():
 def level1(out_dir, experiment_dir):
     RESULTS = {}
 
-    (out_dir / 'level1').mkdir(exist_ok=True, parents=True)
     with fs.open(str(experiment_dir / 'models' / 'model.pkl'), 'rb') as fp:
         model = joblib.load(fp)
 
@@ -110,6 +109,7 @@ def level1(out_dir, experiment_dir):
             'NO2 CvMAE': difference[1, 0],
             'O3 CvMAE': difference[1, 1],
         }, ignore_index=True)
+    (out_dir / 'level1').mkdir(exist_ok=True, parents=True)
     with open(str(out_dir / 'level1' / 'train.csv'), 'w') as fp:
         fp.write(train_results.sort_values('Model').to_csv())
     with open(str(out_dir / 'level1' / 'train.tex'), 'w') as fp:
