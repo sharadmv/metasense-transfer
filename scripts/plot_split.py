@@ -72,7 +72,7 @@ def merge_results(split_results, subu_results, name):
 def plot_results(results, column, out_path):
     results = results[~results[column].isnull()]
     fig, ax = plt.subplots()
-    sns.boxplot(hue='Calibration', y=column, data=results, ax=ax, x='Benchmark')
+    sns.boxplot(hue='Calibration', y=column, data=results, ax=ax, x='Benchmark', whis=2)
     fig.savefig(out_path, bbox_inches='tight')
 
 @click.command()

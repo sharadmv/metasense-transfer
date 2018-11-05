@@ -17,6 +17,10 @@ def load_data(model, path):
     return data
 
 MODELS = ['linear', 'nn-2', 'nn-4', 'subu']
+METRICS = ['%s %s' % (a, b) for a in
+           ["NO2", "O3"] for b in
+           ["MAE", "CvMAE", "MSE", "rMSE", "crMSE", "MBE", "R^2"]
+]
 
 def process_level(data, text):
     data['Experiment'] = text
@@ -32,15 +36,7 @@ if __name__ == "__main__":
     level3 = process_level(pd.read_csv(path / 'level3' / 'test.csv'), 'Level 3')
     # level4 = process_level(pd.read_csv(path / 'level4' / 'test.csv'), 'Level 4')
     data = pd.concat([level0, level1, level2, level3])
-    plt.figure()
-    sns.boxplot(data=data, x='Experiment', y='O3 MAE')
-    plt.savefig(str(path / 'o3.png'))
-    plt.figure()
-    sns.boxplot(data=data, x='Experiment', y='O3 CvMAE')
-    plt.savefig(str(path / 'o3-cv.png'))
-    plt.figure()
-    sns.boxplot(data=data, x='Experiment', y='NO2 MAE')
-    plt.savefig(str(path / 'no2.png'))
-    plt.figure()
-    sns.boxplot(data=data, x='Experiment', y='NO2 CvMAE')
-    plt.savefig(str(path / 'no2-cv.png'))
+    for metric in METRICS:
+        plt.figure()
+        sns.boxplot(data=data, x='Experiment', y=metric)
+        plt.savefig(str(path / ('%s.png' % metric)))
