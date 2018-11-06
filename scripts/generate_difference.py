@@ -5,42 +5,54 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_style('white')
 from argparse import ArgumentParser
+from collections import OrderedDict
 
 def parse_args():
     argparser = ArgumentParser()
     argparser.add_argument('path')
-    argparser.add_argument('--models', nargs='+')
-    argparser.add_argument('out')
 
     return argparser.parse_args()
 
 def load_data(model, path):
     data = pd.read_csv(path)
-    data['Predictor'] = model
-    data['Location'] = list(map(lambda x: eval(x)[1], data['Model']))
     return data
 
-MODELS = ['linear', 'nn-2', 'nn-4', 'subu']
+MODELS = OrderedDict([
+    ('linear', "Linear Regression"),
+    ('nn-2', "NN[2]"),
+    ('nn-4', "NN[4]"),
+    ('subu', "Random Forest")
+])
+
+METRICS = ["%s %s"% (gas, metric) for gas in ["NO2", "O3"]
+           for metric in ["MAE", "CvMAE", "MSE", "rMSE", "crMSE", "R^2", "MBE"]]
+
+EVALUATIONS = {
+    "train": "Train",
+    "test": "Test",
+    "difference": "Train - Test",
+}
 
 if __name__ == "__main__":
     args = parse_args()
     path = Path(args.path)
-    out = Path(args.out)
-    all_data = pd.concat([load_data(model, path / model / 'level1' / 'difference.csv') for model in args.models])
+    out = Path(args.path)
+    model_df = pd.DataFrame()
+    for result, result_name in EVALUATIONS.items():
+        for level in [0, 1, 2, 3]:
+            for model, model_name in MODELS.items():
+                local_df = load_data(model, path / model / ('level%u' % level) / ('%s.csv' % result))
+                local_df = local_df[METRICS]
+                local_df['Model'] = model_name
+                local_df['Level'] = "Level %u" % level
+                local_df['Evaluation'] = result_name
+                model_df = pd.concat([model_df, local_df])
 
-    fig = plt.figure()
-    sns.boxplot(data=all_data, x='Location', y='NO2 MAE', hue='Predictor')
-    fig.suptitle('NO2 MAE')
-    fig.savefig(str(out / 'no2mae_diff.png'), bbox_inches='tight')
-    fig = plt.figure()
-    sns.boxplot(data=all_data, x='Location', y='O3 MAE', hue='Predictor')
-    fig.suptitle('O3 MAE')
-    fig.savefig(str(out / 'o3mae_diff.png'), bbox_inches='tight')
-    fig = plt.figure()
-    sns.boxplot(data=all_data, x='Location', y='NO2 CvMAE', hue='Predictor')
-    fig.suptitle('NO2 CvMAE')
-    fig.savefig(str(out / 'no2cvmae_diff.png'), bbox_inches='tight')
-    fig = plt.figure()
-    sns.boxplot(data=all_data, x='Location', y='O3 CvMAE', hue='Predictor')
-    fig.suptitle('O3 CvMAE')
-    fig.savefig(str(out / 'o3cvmae_diff.png'), bbox_inches='tight')
+    for result, result_name in EVALUATIONS.items():
+        for metric in METRICS:
+            fig, ax = plt.subplots()
+            sns.boxplot(data=model_df[model_df['Evaluation'] == result_name], x="Level", y=metric, hue='Model', whis=2)
+            fig.suptitle(result_name)
+            fig.savefig(str(out / ('%s_%s.png' % (metric, result))), bbox_inches='tight')
+            ax.set_xlabel("")
+            plt.close(fig)
