@@ -1,3 +1,4 @@
+import itertools
 import s3fs
 import time
 import os
@@ -158,6 +159,7 @@ if __name__ == "__main__":
         return (int(a), b, int(c))
     try:
         existing = set(frozenset(map(process, frozenset(x.split('/')[-1].split("-")))) for x in fs.ls(out_dir))
+        existing_map = {frozenset(map(process, frozenset(x.split('/')[-1].split("-")))):x for x in fs.ls(out_dir)}
     except:
         existing = set()
     print("Number of experiments:", len(experiments))
@@ -171,11 +173,9 @@ if __name__ == "__main__":
         commands = []
         for experiment in experiments:
             experiment = list(experiment)
-            if len(experiment) == 2:
-                es = ["-".join("_".join(map(str, x)) for x in e) for e in [experiment, reversed(experiment)]]
-            else:
-                es = ["-".join("_".join(map(str, x)) for x in experiment)]
-            for e in es:
-                commands.append("python scripts/generate_split.py %s %s --level1" % (args.experiment, e))
+            for ex in existing:
+                if ex == frozenset(experiment):
+                    e = Path(existing_map[ex]).basename()
+            commands.append("python scripts/generate_split.py %s %s --level1" % (args.experiment, e))
         pool = ThreadPool(10)
         pool.map(os.system, commands)

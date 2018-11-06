@@ -50,8 +50,12 @@ def benchmark(model, board, test=True):
         else:
             data = load(*board)[0]
         data['board'] = board_id
-    score = model.score(data[sensor_features], data[env_features], data['board'], data[Y_features])
-    return np.stack(score)
+    scores, _ = model.score(data[sensor_features], data[env_features], data['board'], data[Y_features])
+    result = {}
+    for i, gas in enumerate(["NO2", "O3"]):
+        for score, value in scores.items():
+            result["%s %s" % (gas, score)] = value[i]
+    return result
 
 def get_triples():
     for round in DATA:
@@ -88,26 +92,20 @@ def level1(out_dir, experiment_dir):
     for triple in tqdm.tqdm(list(get_triples())):
         train_result = benchmark(model, triple, test=False)
         test_result  = benchmark(model, triple, test=True)
-        difference = train_result - test_result
+        difference = {}
+        for k, v in train_result.items():
+            difference[k] = v - test_result[k]
         train_results = train_results.append({
             'Model': triple,
-            'NO2 MAE': train_result[0, 0],
-            'O3 MAE': train_result[0, 1],
-            'NO2 CvMAE': train_result[1, 0],
-            'O3 CvMAE': train_result[1, 1],
+            **train_result,
         }, ignore_index=True)
         test_results = test_results.append({
             'Model': triple,
-            'NO2 MAE': test_result[0, 0],
-            'O3 MAE': test_result[0, 1],
-            'NO2 CvMAE': test_result[1, 0],
-            'O3 CvMAE': test_result[1, 1],
+            **test_result,
         }, ignore_index=True)
         differences = differences.append({
-            'Model': triple, 'NO2 MAE': difference[0, 0],
-            'O3 MAE': difference[0, 1],
-            'NO2 CvMAE': difference[1, 0],
-            'O3 CvMAE': difference[1, 1],
+            'Model': triple,
+            **difference
         }, ignore_index=True)
     (out_dir / 'level1').mkdir(exist_ok=True, parents=True)
     with open(str(out_dir / 'level1' / 'train.csv'), 'w') as fp:

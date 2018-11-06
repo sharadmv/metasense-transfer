@@ -53,6 +53,6 @@ if __name__ == "__main__":
             fig, ax = plt.subplots()
             sns.boxplot(data=model_df[model_df['Evaluation'] == result_name], x="Level", y=metric, hue='Model', whis=2)
             fig.suptitle(result_name)
+            ax.set_xlabel("Benchmark")
             fig.savefig(str(out / ('%s_%s.png' % (metric, result))), bbox_inches='tight')
-            ax.set_xlabel("")
             plt.close(fig)
