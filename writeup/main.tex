@@ -254,7 +254,7 @@ However, the Split-NN model is trained using data from every board whereas
 the baseline models are only able to use data from one board at a time.
 
 \section{Results \& Discussion}
-\todo{How many data samples? What was the test/val/train split? Random distribution of samples into groups or segmented for continuous blocks? Should we discuss how one or the other might be more representitive of real use cases?}
+\todo{How many data samples? What was the test/val/train split? Random distribution of samples into groups or segmented for continuous blocks? Should we discuss how one or the other might be more representative of real use cases?}
 
 \subsection{Robustness of Different Sensor Quantification Techniques Across New Locations}
 
@@ -329,9 +329,11 @@ holding out particular locations but training on all boards on the
 remaining locations.
 In these results, our model on average has lower MAE and CvMAE in Level 1 and Level 2 benchmarks for the random forest model. We examine this further
 by taking the difference in errors between the same permutations 
-in each benchmark. We find on average, our models have $0.374$ ppb lessMAE  
+in each benchmark. We find on average, our models have $0.374$ ppb less MAE  
 for NO2 prediction and $0.436$ ppb less MAE for O3 prediction.
-We also find the results with MAE
+We also find these results consistent across the other metrics,
+a promising indication that pooling data across boards offers
+improvements, even if marginal.
 
 \begin{figure}[H]
 \begin{subfigure}{0.49\textwidth}
@@ -354,8 +356,13 @@ We also find the results with MAE
 \label{fig:split-comparison}
 \end{figure}
 
-This split architecture enables cheaper calibration of new boards. 
-Suppose we have a set of $N$ calibrated boards and are presented with an uncalibrated $N + 1$-th board. The safest way to calibrate this new board would be to colocate it with a ground-truth sensor and train a model. This restricts the datasets to train a newer sensor on to ground-truth locations. 
+The Split-NN offers a novel method to calibrate new boards.
+Suppose we have a set of $N$ calibrated boards and are presented with an uncalibrated $N + 1$-th board. The safest way to calibrate this new board would is always to colocate it with a ground-truth sensor and train a model. 
+This requirement, however, is potentially restrictive and expensive, as it
+necessitates deploying the sensor by an EPA or other reliable sensor.
+On the other hand, colocating with another low cost sensor is simple
+and cheap, but risks
+compounding the noise and error that already exist.
 
 \begin{figure}
     \includegraphics[width=0.5\textwidth]{writeup/img/split-calibration}
