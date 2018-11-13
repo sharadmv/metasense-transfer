@@ -72,7 +72,7 @@ def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
     instance_type = 'm5.large'
     # ami = 'ami-019728aa43c61ac9c'
     ami = 'ami-0aff95c47247db35e'
-    spot_price = '0.2'
+    spot_price = '0.3'
     round = ",".join([str(x[0]) for x in experiment])
     location = ",".join([str(x[1]) for x in experiment])
     board = ",".join([str(x[2]) for x in experiment])
@@ -134,15 +134,25 @@ def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
 if __name__ == "__main__":
     args = parse_args()
     experiments = set()
-    board_map = defaultdict(list)
+    all_triples = set()
+    # board_map = defaultdict(list)
     LOCATIONS = {'elcajon', 'shafter', 'donovan'}
-    for location in LOCATIONS:
-        experiment = set()
-        for round in BOARD_CONFIGURATION:
+    location_map = defaultdict(set)
+    all_triples = set()
+    for round in BOARD_CONFIGURATION:
+        for location in BOARD_CONFIGURATION[round]:
             for board in BOARD_CONFIGURATION[round][location]:
-                experiment.add((round, location, board))
-        experiments.add(frozenset(experiment))
-    print(experiments)
+                location_map[location].add((round, location, board))
+                all_triples.add((round, location, board))
+    for location, es in location_map.items():
+        experiments.add(frozenset(all_triples - es))
+    # for location in LOCATIONS:
+        # experiment = set()
+        # for round in BOARD_CONFIGURATION:
+            # for board in BOARD_CONFIGURATION[round][location]:
+                # experiment.add((round, location, board))
+                # all_triples.add((round, location, board))
+        # experiments.add(frozenset(experiment))
     # for round in BOARD_CONFIGURATION:
         # for location in BOARD_CONFIGURATION[round]:
             # for board in BOARD_CONFIGURATION[round][location]:
@@ -150,8 +160,7 @@ if __name__ == "__main__":
                 # board_map[board].append((round, location))
     # for board in board_map:
         # triples = set((a, b, board) for a, b in board_map[board])
-        # for triple in triples:
-            # experiments.add(frozenset(triples - {triple}))
+        # experiments.add(frozenset(all_triples - triples))
     fs = s3fs.S3FileSystem(anon=False)
     out_dir = Path(BUCKET_NAME) / args.experiment
     def process(x):
