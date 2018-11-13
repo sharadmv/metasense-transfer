@@ -55,10 +55,12 @@ def get_results(models):
         def filter(x):
             return x['Model'] in triples
         filtered = model_results[model_results.apply(filter, axis=1)]
-        if len(triples) != 9:
-            filtered.loc[:, "Benchmark"] = 'Level %u' % (3 - len(triples))
-        else:
+        if len(triples) == 9:
             filtered.loc[:, "Benchmark"] = 'Level 2'
+        elif len(triples) == 18:
+            filtered.loc[:, "Benchmark"] = 'Level 1'
+        else:
+            filtered.loc[:, "Benchmark"] = 'Level %u' % (3 - len(triples))
         results = results.append(filtered)
         results.loc[:, 'Calibration'] = 'Split-NN'
     return results, set(results['Model'])
@@ -78,7 +80,9 @@ def merge_results(split_results, subu_results, name):
 def plot_results(results, column, out_path):
     results = results[~results[column].isnull()]
     fig, ax = plt.subplots()
-    sns.boxplot(hue='Calibration', y=column, data=results[["Calibration", "Benchmark"] + METRICS + ["%s Improvement" % x for x in METRICS]], ax=ax, x='Benchmark', whis=2)
+    data = results.copy()
+    data["Model"] = data["Calibration"]
+    sns.boxplot(hue='Model', y=column, data=data[["Model", "Benchmark"] + METRICS + ["%s Improvement" % x for x in METRICS]], ax=ax, x='Benchmark', whis=2)
     fig.savefig(out_path, bbox_inches='tight')
 
 @click.command()

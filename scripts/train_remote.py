@@ -185,6 +185,7 @@ if __name__ == "__main__":
             for ex in existing:
                 if ex == frozenset(experiment):
                     e = Path(existing_map[ex]).basename()
+            print(e)
             commands.append("python scripts/generate_split.py %s %s --level1" % (args.experiment, e))
         pool = ThreadPool(10)
         pool.map(os.system, commands)
