@@ -144,36 +144,42 @@ Finally, we develop a cloud backend in the Amazon cloud. Sensors can be configur
 
 \subsection{Quantification Techniques and Approaches}
 
+Our sensors sample voltage values from each electrode roughly
+once every 5 seconds. Although we have access to voltages from each electrode (active and working), we used the difference between the two (active minus working) as the representative voltage for each sensor. We found using them separately does not improve the quality of the models and this decision is also consistent with the methodology of \citet{Zimmerman2018}. We manually filtered out
+anomalous values according to preset thresholds that search
+for extreme voltage and temperature spikes (\todo{details can be found
+in the appendix}). 
+We obtained minute-averaged O3 and NO2 concentrations from the colocated EPA stations, and minute-averaged our own readings before joining
+with the EPA data.
 \todo{Overall questions we need to answer: How is data preprocessed? What filters are we applying? How are we aligning in time? How do we handle different sampling frequencies? How do we handle missing data? What does the pipeline look like? What engine are we using for performing training? }
 
-Sensor calibration is the process of developing and training models to convert raw sensor voltages from WE and AE into usable pollutant concentrations. We formalize sensor calibration as a regression problem, with input features $x$ representing board voltages and environmental measurements (O3 voltage, NO2 voltage, CO voltage, \todo{(Why are we using a single value for voltage instead of inputting both electrodes? We need to explain a bit.)} temperature, pressure, humidity), and $y$ representing a set of pollutant concentrations to predict (O3 ppb, NO2 ppb).
-To obtain these ground-truth gas concentrations $y$ to go along
-with the board readings, we colocated
-the MetaSense boards with EPA stations \todo{(official word?)}.
-After obtaining minute-averaged O3 and NO2
-concentrations from these EPA stations, we aligned them with
-minute-averaged readings from MetaSense boards
-to create a dataset consisting of $(x, y)$ pairs
-for each board.
+Sensor calibration is the process of developing and training models to convert sensor voltages into usable pollutant concentrations. We formalize sensor calibration as a regression problem, with input features $x$ and $e$ representing board voltages (O3 voltage, NO2 voltage, CO voltage) and environmental factors (temperature, pressure, humidity) respectively for a total of 6 features. $y$ corresponds to pollutant concentrations (O3 ppb, NO2 ppb).
 
-In regression, the goal is to develop a function $h_\theta(x)$
-such that $h_\theta(x) \approx y$. This optimization is often formalized as minimizing error over a training dataset $\{x_n, y_n\}_{n = 1}^N$ according to a loss function $L(h_\theta(x), y)$, i.e. 
+In regression, the goal is to develop a function $h_\theta(x, e)$
+such that $h_\theta(x, e) \approx y$. This is often formalized as an optimization where we minimize error over a training dataset $\{x_n, e_n, y_n\}_{n = 1}^N$ according to a loss function $L(h_\theta(x, e), y)$, i.e. 
 \begin{equation}
-\theta^* = \argmin_\theta \frac{1}{N}\sum_{n = 1}^N L(h_\theta(x_n), y_n)
+\theta^* = \argmin_\theta \frac{1}{N}\sum_{n = 1}^N L(h_\theta(x_n, e_n), y_n)
 \end{equation}
-Models trained in this way, however, assume that predictions are made
-on data sampled from the training distribution. In practice,
-models will often overfit to the training distribution and when
-presented with out-of-examples, will produce incorrect predictions.
-In this paper, we examine how well this distributional assumption holds in a real-life case study, as in practice we want our sensors to be deployed in different locations from where they were calibrated. Specifically, we analyze how certain models perform when their data distribution changes. As previously described, we colocated MetaSense boards with EPA stations across three locations in California (El Cajon, Donovan, Shafter).
-By training a calibration model on a training data restricted to some sites and testing on the other site, we effectively measure how well particular models ``transfer'' to other sites.
+Models trained in this way, however, assume that at test time, predictions
+are made on data sampled from the training distribution. 
+High-capacity models will often overfit the training distribution and when
+predicting on out-of-distribution examples, will incur significant
+error. Overfitting can be mitigated with regularization and by reducing
+model capacity, but these tricks can only go so far if the test distribution
+is drastically different from the train distribution.
 
-We focus on four different models: 
+The MetaSense project is concerned with deploying mobile, portable
+sensors and thus we wish to train calibration models
+that can generalize beyond the data obtained via colocation.
+As previously described, we colocated MetaSense boards with EPA stations across three locations in California (El Cajon, Donovan, Shafter).
+By training a calibration model on a training data restricted to some sites and testing on the other site, we measure how well particular models generalize to different locations.
+
+We focus on four different baseline models: 
 \begin{enumerate}
-    \item \textbf{Linear regression:} we assume the functional form $h(x) \triangleq w^T x + b$, and $w$ and $b$ can be fit in closed form.
+    \item \textbf{Linear regression:} we assume the functional form $h(x) \triangleq w^T x + b$, and fit the parameters in closed form. We use no regularization or polynomial features.
     \item \textbf{Two-layer neural network:} we fit a two-hidden layer (200 wide) multilayer perceptron with rectified-linear unit activation functions and a final linear layer. We train this neural network using the Adam optimizer ($\beta_0 = 0.9, \beta_1 = 0.999$) and a learning rate of $1e-3$.
     \item \textbf{Four-layer neural network:} Same as two-layer neural network, but four hidden layers of width 200 instead of two.
-    \item \textbf{Random forest:} We divide our data into five folds and train a random forest of size 100 on each fold, resulting in 500 trees.
+    \item \textbf{Random forest:} We divide our data into five folds and train a random forest of size 100 on each fold, resulting in 500 trees. We aim to reproduce the strategy of \citet{Zimmerman2018} as closely as possible.
 \end{enumerate}
 With each of these four models, we performed a suite of identical benchmarks that measure various model transfer capabilities. We first initially split all datasets uniformly at random into train and test subsets, reserving 20\% of each board's data for testing.
 In each benchmark, we progressively widen the training distribution by combining training data from more locations, while keeping the test set dataset from one location. We thus have four ``levels'' of benchmarks:
@@ -181,33 +187,54 @@ In each benchmark, we progressively widen the training distribution by combining
     \item \textbf{Level 0:} train a model on one location and test on the same location
     \item \textbf{Level 1:} train a model on one location and test on another location
     \item \textbf{Level 2:} train a model on two locations and test on a third location 
-    \item \textbf{Level 3:} train on three locations and tests on each of same three. 
+    \item \textbf{Level 3:} train a model on three locations and test on one of the three
 \end{itemize}
-\todo{(Add figure to explain meaning of different levels)}Notably in Level 0 and Level 3 benchmarks, the train and test data distribution have explicit overlap, whereas in Level 1 and 2, there is no explicit overlap. 
-In each of these benchmarks, we measure
-the mean-absolute error in the test set (although our models are trained with MSE, we evaluate with MAE to offer a closer comparison to the results from \citet{Zimmerman2018}).
+\begin{figure}
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level0.png}
+\caption{Level 0}
+\end{subfigure}
+~
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level1.png}
+\caption{Level 1}
+\end{subfigure}
+~
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level2.png}
+\caption{Level 2}
+\end{subfigure}
+~
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level3.png}
+\caption{Level 3}
+\end{subfigure}
+\caption{Levels}
+\end{figure}
 
+Notably in Level 0 and Level 3 benchmarks, the train and test data distribution have explicit overlap, whereas in Level 1 and 2, there is no explicit overlap. 
 The goal of this benchmark suite is to evaluate how expanding the data distribution can improve model transferability. We expect Level 0 performance to be the best, as the train and test distribution are identical. We also expect Level 1 performance to be the worst, as the training distribution is the narrowest and Level 3 to be close to Level 0 performance, due to the overlap in train and test distributions. 
 Furthermore, we expect higher capacity models to overfit more to the training dataset, and thus have the biggest gap between Level 0 and Level 1. Thus, we expect linear regression to have more consistent performance across the benchmarks, followed by the 2-layer neural network, 4-layer neural network, and finally the random forest.
 
-We ran each benchmark across all permutations of our collected dataset,
-measuring mean absolute error (MAE) \todo{(Our loss function is minimizing for MSE. Why are we using MAE?)} and the coefficient of variation of mean absolute error (CvMAE), to be consistent with results with \citet{Zimmerman2018},
-where these two measures are defined as
+We ran each benchmark across all possible permutations of location and board,
+measuring six metrics: root mean squared error (rMSE), centered root mean squared error (crMSE), mean absolute error (MAE), the coefficient of variation of mean absolute error (CvMAE), mean bias error (MBE), and coefficient of determination ($R^2$).
+\iffalse
 \begin{align*}
     \mathrm{MAE}(h(x), y) &= |h(x) - y| \\
     \mathrm{CvMAE}(h(x), y) &= \frac{1}{\textrm{Average conc. of pollutant}}|h(x) - y| \\
 \end{align*}
+\fi
 
 \subsection{A Method for Improving Transferability}
 
-The most straightforward method to improve model transferability is collecting training data that more closely matches the test distribution.
+A straightforward method to improve model transferability is collecting training data that more closely matches the test distribution.
 This is reflected by the Level 2 and Level 3 results. The improvement from adding more data indicates that collecting data from a wider distribution can help in model transferability.
 However, colocating sensors and moving them
 several times can be expensive and takes more time to collect the training data.
 
 Consider a collection of many boards. Previously, we would attribute each board $i$ with a calibration function $h_{\theta_i}(x)$, and fit this calibration function with colocated data.
-We propose using a calibration function split into two distinct steps: first, we pass in pollutant sensor voltages $x$ into a sensor-specific model, $s_{\theta_i}(x)$ (a function parametrized by $\theta_i$, which outputs a fixed dimensional vector $u$ \todo{Add diagram}. This intermediate representation $u$ is concatenated with environment data $e$ is then passed into a global calibration model $c_\phi([u | e])$. For a single board, our final calibration function is $c_\phi([s_{\theta_i}(x) | e])$.
-In general, we use neural networks as the sensor-specific models and the global calibration models.
+We propose using a calibration function split into two distinct steps: first, we pass in pollutant sensor voltages $x$ into a sensor-specific model, $s_{\theta_i}(x)$ (a function parametrized by $\theta_i$, which outputs a fixed dimensional vector $u$. This intermediate representation $u$ is concatenated with environment data $e$ is then passed into a global calibration model $c_\phi([u | e])$. For a single board, our final calibration function is $c_\phi([s_{\theta_i}(x) | e])$.
+In general, we use neural networks as the sensor-specific models and the global calibration models. We call this a ``Split-NN'' model. 
 
 \begin{figure}
     \includegraphics[width=0.8\textwidth]{writeup/img/split-model.png}
@@ -222,17 +249,22 @@ Suppose Board A is trained on Location 1 and Board B is trained on Location 2 \t
 The second is more efficient utilization of data. By pooling data and training jointly, we effectively multiply our data size by the number of boards we collect data for.
 Finally, the split model enables us to calibrate new boards by colocating to match representation, which we discuss later.
 
-To evaluate this split model, we perform a leave-one-out benchmark. Given our dataset of nine boards across three locations, we train a split model on all (board, location) pairs but one, which is used for testing. The hope is that using data from other boards from the held out location, we can get better error than a Level 1 or Level 2 evaluation from RFs.
-
+To evaluate this split model, we perform a Level 1 and Level 2 benchmark.
+However, the Split-NN model is trained using data from every board whereas
+the baseline models are only able to use data from one board at a time.
 
 \section{Results \& Discussion}
 \todo{How many data samples? What was the test/val/train split? Random distribution of samples into groups or segmented for continuous blocks? Should we discuss how one or the other might be more representitive of real use cases?}
 
 \subsection{Robustness of Different Sensor Quantification Techniques Across New Locations}
 
-We observe that on average, linear regression \todo{(What linear regression model did we use? Any sort of regularization? What variables did we put into the model? Have other groups tried this? How do our initial results compare to theirs (ie. did we collect sufficiently good data)?)} has the highest error across different benchmarks. However, its performance across those benchmarks is more consistent than the other models \todo{(What does this mean?)}. On the other hand, we have random forests (RFs) which have on average the lowest error, but suffer from a large jump in error from Level 0 to Level 1. In fact, NN[2] has less Level 1 3rd-quartile error for O3 than RFs, and a similar error profile to RFs for NO2 \todo{(Difficult to compare across plots. Is there a better way to show?)}.
+We observe that on average, as model capacity increases, Level 0 error decreases. This is consistent across both NO2 and O3 prediction and reflects the ability of the model to fit the train distribution. Level 1 and 2 benchmarks reflect the ability of a model to generalize to a distribution it hasn't seen before and we see that in these benchmarks, errors are much higher and the gaps between models is smaller.
+Furthermore, Level 2 error is lower than Level 1 error. By adding data from another site, effectively widening the training data distribution, the models become more robust to the unseen test distribution. Level 3 performance aligns closely with Level 0 performance, which is to be expected, since in both cases
+the train distribution matches the test distribution.
 
-The advantage of RFs is mainly in Level 0 and Level 3 benchmarks, where the train and test distribution have explicit overlap. This indicates that RFs are much  more prone to overfitting in this problem than the neural networks and linear regression. In a scenario where sensors are deployed and immobile, RFs seem to be the appropriate model \todo{(How is an appropriate model defined? Isn't our argument that RFs are overfitting to local conditions and that our randomized intermingling of test/train points is causing RFs to artificially look good but they aren't actually calculating pollution values from input electrode data but rather from environmental conditions?)}, but when the calibration location and deployment location are different, other methods will be necessary to obtain better performance. For example, neural networks appear a more consistent model after transfer than random forests \todo{("appear" is a soft comparison. How do they quantitatively compare? By what percent are neural networks better?)}.
+Across baselines, we observe that on average, linear regression has the highest error on all the benchmarks. However, its error across the Level benchmarks more consistent than the other models, suggesting that low-capacity linear regression are more robust to transfer. On the other hand, random forests (RFs) have on average the lowest error, but have far more inconsistent results across the Levels. The results indicate a tradeoff between model capacity and robustness to transfer, consistent with our intuitions about model overfitting and generalization. Neural networks lie in between linear regression and random forests, and offer a tradeoff between low error and consistent error. 
+
+These results suggest good practices when deploying models. Training a complex RF calibration model will likely result in very low error at a colocated site, but could incur significant error at a different site. Although their predictions at a new site will have lower error than linear regression, the error they have at the train site will likely not be representative of their error in practice. A linear model, on the other hand, despite not predicting as well at the train site, will not have significantly more error at test time.
 
 \begin{figure}[H]
 \centering
@@ -267,62 +299,75 @@ The advantage of RFs is mainly in Level 0 and Level 3 benchmarks, where the trai
 \end{itemize}
 \fi
 
-Our hypothesis as to why models degrade after transfer is that the distribution
-of pollutant values and environmental factors differs across location and time. When
-a model is fit to one distribution, it performs poorly on others due to overfitting \todo{(perhaps add something like: the model is overfitting to ambient environmental conditions and not the sensor reading. Many pollutants change with the diurnal cycle of the earth (eg. NO2 turning into O3 only when there is UV light, so NO2 is bigger at night, which is typically cooler and more/less humidity).)}.
-We first investigate how these data distributions differ. Over each location and round, pollutant values can be highly variable. This is reflected, for example, in \autoref{fig:no2-rounds} where Shafter has higher values of NO2 in Round 1 and 2. Furthermore, in \autoref{fig:o3-rounds}, the distribution of O3 changes remarkably across round and location.
+In general, however, we observe that model performance degrades non-trivially
+when moved to different locations. This decrease in performance could result in overconfidence in a sensor's readings, potentially affecting downstream decisions. We briefly analyze the properties of our data that could result
+in overfitting.
+\todo{(perhaps add something like: the model is overfitting to ambient environmental conditions and not the sensor reading. Many pollutants change with the diurnal cycle of the earth (eg. NO2 turning into O3 only when there is UV light, so NO2 is bigger at night, which is typically cooler and more/less humidity).)}.
+We first investigate how data distributions across sites and times differ. Over each location and round, pollutant values can be highly variable. This is reflected, for example, in \autoref{fig:no2-rounds} where Shafter has higher values of NO2 in Round 1 and 2 but lower in Round 3. Furthermore, in \autoref{fig:o3-rounds}, the distribution of O3 changes remarkably across round and location.
 Similarly, temperature and humidity change significantly across location and round, which can be seen in \autoref{fig:temperature-rounds} and \autoref{fig:humidity-rounds}.
 
+\iffalse
 To determine whether models overfit to a particular feature, we evaluate their train and test performance on the datasets with and without the feature. We found that (models overfit to temperature) \todo{fill in this section}.
+\fi
 
-
-
-Another way of examining this issue is comparing the raw sensor signal from each location. Figure X depicts data from the O3 sensor, from each site that has been matched by similar temperature, humidity, and ozone values. We would expect the same conditions to result in the same raw value from the sensor, but as we can see from the plots this is not the case. Furthermore, there is more correlation when comparing the values within a site versus between sites - this seems to suggest that there are location specific conditions that impact our sensor data (possibly different background compositions). Either way, it is important to note that more factors than temperature, humidity, and target gas concentration can impact sensor signal.
+Another way of examining this issue is comparing the raw sensor signal from each location. \autoref{fig:o3-plots} depicts data from the O3 sensor, from each site that has been matched by similar temperature, humidity, and ozone values. We would expect the same conditions to result in the same raw value from the sensor, but as we can see from the plots this is not the case. Furthermore, there is more correlation when comparing the values within a site versus between sites - this seems to suggest that there are location specific conditions that impact our sensor data (possibly different background compositions). Either way, it is important to note that more factors than temperature, humidity, and target gas concentration can impact sensor signal.
 \todo{replace the above paragraph and below plot with plots similar to those from the ASIC presentation} 
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=1\textwidth]{writeup/img/plots.png}
 \caption{Scatter plots illustrating consistency of sensor behavior}
-\label{fig:img-label}
+\label{fig:o3-plots}
 \end{figure}
 
 
 \subsection{Approaches to Increase the Robustness of Calibrations}
 
-\todo{How is this different than the split level outlined in the methods section? Do we have a more detailed results write up for this section?}
-
-In this section, we detail a method to share models across different boards, effectively increasing the amount of data each board is trained on. This method also enables a new technique for colocating boards. We evaluate the split model described in Section 2.4, by performing a leave-one-out benchmark. Of nine boards across three locations, we train a split model on all board/location pairs except for one, which is used for testing. 
-We performed this evaluation on all possible held out locations (i.e. training a split model on all our datasets but one), which results pictured in \autoref{fig:split-comparison}.
-In these results, our model on average has lower MAE and CvMAE in Level 1 and Level 2 benchmarks for the random forest model. We found that held out boards calibrated in this way had only a small drop in performance compared to when they were included in the global model.
+In this section, we analyze the Split-NN's utility for calibration.
+We evaluate the Split-NN by performing Level 1 and Level 2 benchmarks, comparing to the baselines. The Split-NN is trained by
+holding out particular locations but training on all boards on the 
+remaining locations.
+In these results, our model on average has lower MAE and CvMAE in Level 1 and Level 2 benchmarks for the random forest model. We examine this further
+by taking the difference in errors between the same permutations 
+in each benchmark. We find on average, our models have $0.374$ ppb lessMAE  
+for NO2 prediction and $0.436$ ppb less MAE for O3 prediction.
+We also find the results with MAE
 
 \begin{figure}[H]
 \begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/subu/no2mae.png}
+\includegraphics[width=\textwidth]{\splitdir/locations/NO2" "MAE.png}
 \caption{NO2 MAE}
 \end{subfigure}
 \begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/subu/o3mae.png}
+\includegraphics[width=\textwidth]{\splitdir/locations/O3" "MAE.png}
 \caption{O3 MAE}
 \end{subfigure}
 \begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/subu/no2cvmae.png}
-\caption{NO2 CvMAE}
+\includegraphics[width=\textwidth]{\splitdir/locations/NO2" "MAE-diff.png}
+\caption{NO2 MAE difference}
 \end{subfigure}
 \begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/subu/o3cvmae.png}
-\caption{O3 CvMAE}
+\includegraphics[width=\textwidth]{\splitdir/locations/O3" "MAE-diff.png}
+\caption{O3 MAE difference}
 \end{subfigure}
-\caption{Comparison of errors of Split NN and RFs. Training size corresponds to a Level 1 or Level 2 comparison.}
+\caption{Comparison of errors of Split NN and RFs.}
 \label{fig:split-comparison}
 \end{figure}
 
-\todo{(Add graphic to help explain)}This split architecture enables cheaper calibration of new boards. 
+This split architecture enables cheaper calibration of new boards. 
 Suppose we have a set of $N$ calibrated boards and are presented with an uncalibrated $N + 1$-th board. The safest way to calibrate this new board would be to colocate it with a ground-truth sensor and train a model. This restricts the datasets to train a newer sensor on to ground-truth locations. 
+
+\begin{figure}
+    \includegraphics[width=0.5\textwidth]{writeup/img/split-calibration}
+    \caption{Calibrating a new board $N + 1$}
+\end{figure}
 
 However, suppose we had a fleet of low-cost sensors already deployed. 
 A more efficient calibration method would be to colocate it with one of our $N$ calibrated boards and train a model to match the pollutant levels outputted by its calibration function. This risks compounding errors across models, however. 
-We propose calibrating the $N+1$-th sensor to match the intermediate representation outputted by colocated low-cost sensors. These intermediate representations are meant to be robust to changes in location so training to match these representation will hopefully result in a robust calibration model. We analyze this potential calibration technique by holding out a board from our datasets and training a split model. We then simulate calibrating the held out board by training a sensor model to match the representations produced by another board it was colocated with. We then use this new sensor model with the global calibration function to produce pollutant values.
+We propose calibrating the $N+1$-th sensor to match the intermediate representation outputted by colocated low-cost sensors. Specifically,
+we train the $N + 1$ model to minimize $L(u_N, u_{N + 1})$, or
+the loss between the the two board's intermediary outputs.
+These intermediate representations are meant to be robust to changes in location so training to match these representation will hopefully result in a robust calibration model. We analyze this potential calibration technique by holding out a board from our datasets and training a split model. We then simulate calibrating the held out board by training a sensor model to match the representations produced by another board it was colocated with. We then use this new sensor model with the global calibration function to produce pollutant values. \todo{Move this to methods?}
 
 \iffalse
 
@@ -654,7 +699,7 @@ is identified by a triplet of information (round, location, board number). In to
 hold one triple out, resulting in a
 total training set size of 24 datasets and test size of 1 dataset. This results in a total of 25 experiments
 for which we boxplot the results.
-We compare the split models to our four static models (Linear, NN[2], NN[4], Subu) by comparing the Split-NN performance on the held out dataset to the Level 2 performance of the four models.
+We compare the split models to our four static models (Linear, NN[2], NN[4], Random Forest) by comparing the Split-NN performance on the held out dataset to the Level 2 performance of the four models.
 Level 2 performance corresponds to training on two locations
 and testing on the third. The split model has access to the same training data as the Level 2 models, but with the addition of data from other boards. The hope is this additional board data can help improve upon Level 2 performance, which can be thought of as the ``best'' possible transfer performance.
 
