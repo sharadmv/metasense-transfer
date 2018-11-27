@@ -151,7 +151,9 @@ for extreme voltage and temperature spikes (\todo{details can be found
 in the appendix}). 
 We obtained minute-averaged O3 and NO2 concentrations from the colocated EPA stations, and minute-averaged our own readings before joining
 with the EPA data.
-\todo{Overall questions we need to answer: How is data preprocessed? What filters are we applying? How are we aligning in time? How do we handle different sampling frequencies? How do we handle missing data? What does the pipeline look like? What engine are we using for performing training? }
+Over all three rounds of data collection, we obtained 1,200,000 measurements after minute-averaging. Each individual dataset was then split 80/20 into a train and test set.
+
+Before using this data, we applied a series of simple filters which remove anomalous measurements. Specifically, we searched for temperature and voltage spikes which were outside the realm of reasonable values (for example 60 degrees Celsius), and removed the corresponding measurements.
 
 Sensor calibration is the process of developing and training models to convert sensor voltages into usable pollutant concentrations. We formalize sensor calibration as a regression problem, with input features $x$ and $e$ representing board voltages (O3 voltage, NO2 voltage, CO voltage) and environmental factors (temperature, pressure, humidity) respectively for a total of 6 features. $y$ corresponds to pollutant concentrations (O3 ppb, NO2 ppb).
 
@@ -174,10 +176,10 @@ that can generalize beyond the data obtained via colocation.
 As previously described, we colocated MetaSense boards with EPA stations across three locations in California (El Cajon, Donovan, Shafter).
 By training a calibration model on a training data restricted to some sites and testing on the other site, we measure how well particular models generalize to different locations.
 
-We focus on four different baseline models: 
+We focus on four different baseline models, each trained using the Scikit-Learn Python package: 
 \begin{enumerate}
     \item \textbf{Linear regression:} we assume the functional form $h(x) \triangleq w^T x + b$, and fit the parameters in closed form. We use no regularization or polynomial features.
-    \item \textbf{Two-layer neural network:} we fit a two-hidden layer (200 wide) multilayer perceptron with rectified-linear unit activation functions and a final linear layer. We train this neural network using the Adam optimizer ($\beta_0 = 0.9, \beta_1 = 0.999$) and a learning rate of $1e-3$.
+    \item \textbf{Two-layer neural network:} we fit a two-hidden layer (200 wide) multilayer perceptron with rectified-linear unit activation functions and a final linear layer. We train this neural network using the Adam optimizer ($\beta_0 = 0.9, \beta_1 = 0.999$) and a learning rate of $10^{-3}$.
     \item \textbf{Four-layer neural network:} Same as two-layer neural network, but four hidden layers of width 200 instead of two.
     \item \textbf{Random forest:} We divide our data into five folds and train a random forest of size 100 on each fold, resulting in 500 trees. We aim to reproduce the strategy of \citet{Zimmerman2018} as closely as possible.
 \end{enumerate}
@@ -243,18 +245,35 @@ In general, we use neural networks as the sensor-specific models and the global 
 
 The split model can be trained efficiently with stochastic gradient descent. Specifically, we first collect $N$ datasets for each board $D_i = \{x^{(i)}, e^{(i)}, y^{(i)}\}_{i = 1}^N$. We ensure each of these datasets is the same size by sampling each with replacement to artificially match the largest dataset. We then pool the datasets together into one dataset from which we sample minibatches. Each sensor-specific model will be trained only on data collected by its sensor, but the global calibration model will be trained on all the data. Furthermore, sensor-specific models will be encouraged to output intermediate representations $u$ that are compatible with each other, since they are all fed into the same global model to produce pollutant levels.
 
-This method has some key advantages over conventional calibration techniques. \todo{Has this been done before? Are there tradeoffs, such as taking longer to train?}
+Although training this neural network will take longer than training one for a single board, this method has some key advantages over conventional calibration techniques. 
 The first is its ability to share information across both boards. 
-Suppose Board A is trained on Location 1 and Board B is trained on Location 2 \todo{(Shouldn't we mention that the boards have to have some shared location? Or am I not understanding this correctly?)}. Pooling the datasets and using a shared model will encourage the global calibration model to predict well in both locations, and thus the calibration models for both boards will have information about the other locations in them, hopefully improving transferability.
+Suppose Board A is trained on Location 1 and Board B is trained on Location 2. Pooling the datasets and using a shared model will encourage the global calibration model to predict well in both locations, and thus the calibration models for both boards will have information about the other locations in them, hopefully improving transferability.
 The second is more efficient utilization of data. By pooling data and training jointly, we effectively multiply our data size by the number of boards we collect data for.
-Finally, the split model enables us to calibrate new boards by colocating to match representation, which we discuss later.
 
 To evaluate this split model, we perform a Level 1 and Level 2 benchmark.
 However, the Split-NN model is trained using data from every board whereas
 the baseline models are only able to use data from one board at a time.
 
+
+\subsection{Calibrating new boards}
+Calibration at this point has been performed by colocating sensors with ground-truth sensors and training to match pollutant concentrations,
+But, suppose we had a fleet of already low-cost sensors already deployed. 
+A simpler method would be to colocate it with one of our $N$ calibrated boards and train a model to match the pollutant levels outputted by its calibration function. This risks compounding errors across models, however. 
+The split model would enable calibrating new boards by colocating to match representation.
+We propose calibrating the $N+1$-th sensor to match the intermediate representation outputted by colocated low-cost sensors. Specifically,
+we train the $N + 1$ model to minimize $L(u_N, u_{N + 1})$, or
+the loss between the the two board's intermediary outputs.
+These intermediate representations are meant to be robust to changes in location so training to match these representation will hopefully result in a robust calibration model. We analyze this potential calibration technique by holding out a board from our datasets and training a split model. We then simulate calibrating the held out board by training a sensor model to match the representations produced by another board it was colocated with. We then use this new sensor model with the global calibration function to produce pollutant values. 
+
+The Split-NN offers a novel method to calibrate new boards.
+Suppose we have a set of $N$ calibrated boards and are presented with an uncalibrated $N + 1$-th board. The safest way to calibrate this new board would is always to colocate it with a ground-truth sensor and train a model. 
+This requirement, however, is potentially restrictive and expensive, as it
+necessitates deploying the sensor by an EPA or other reliable sensor.
+On the other hand, colocating with another low cost sensor is simple
+and cheap, but risks
+compounding the noise and error that already exist.
+
 \section{Results \& Discussion}
-\todo{How many data samples? What was the test/val/train split? Random distribution of samples into groups or segmented for continuous blocks? Should we discuss how one or the other might be more representative of real use cases?}
 
 \subsection{Robustness of Different Sensor Quantification Techniques Across New Locations}
 
@@ -310,20 +329,10 @@ Similarly, temperature and humidity change significantly across location and rou
 To determine whether models overfit to a particular feature, we evaluate their train and test performance on the datasets with and without the feature. We found that (models overfit to temperature) \todo{fill in this section}.
 \fi
 
-Another way of examining this issue is comparing the raw sensor signal from each location. \autoref{fig:o3-plots} depicts data from the O3 sensor, from each site that has been matched by similar temperature, humidity, and ozone values. We would expect the same conditions to result in the same raw value from the sensor, but as we can see from the plots this is not the case. Furthermore, there is more correlation when comparing the values within a site versus between sites - this seems to suggest that there are location specific conditions that impact our sensor data (possibly different background compositions). Either way, it is important to note that more factors than temperature, humidity, and target gas concentration can impact sensor signal.
-\todo{replace the above paragraph and below plot with plots similar to those from the ASIC presentation} 
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=1\textwidth]{writeup/img/plots.png}
-\caption{Scatter plots illustrating consistency of sensor behavior}
-\label{fig:o3-plots}
-\end{figure}
-
 
 \subsection{Approaches to Increase the Robustness of Calibrations}
 
-In this section, we analyze the Split-NN's utility for calibration.
+In this section, we evaluate the Split-NN's utility for calibration.
 We evaluate the Split-NN by performing Level 1 and Level 2 benchmarks, comparing to the baselines. The Split-NN is trained by
 holding out particular locations but training on all boards on the 
 remaining locations.
@@ -356,25 +365,12 @@ improvements, even if marginal.
 \label{fig:split-comparison}
 \end{figure}
 
-The Split-NN offers a novel method to calibrate new boards.
-Suppose we have a set of $N$ calibrated boards and are presented with an uncalibrated $N + 1$-th board. The safest way to calibrate this new board would is always to colocate it with a ground-truth sensor and train a model. 
-This requirement, however, is potentially restrictive and expensive, as it
-necessitates deploying the sensor by an EPA or other reliable sensor.
-On the other hand, colocating with another low cost sensor is simple
-and cheap, but risks
-compounding the noise and error that already exist.
+
 
 \begin{figure}
     \includegraphics[width=0.5\textwidth]{writeup/img/split-calibration}
     \caption{Calibrating a new board $N + 1$}
 \end{figure}
-
-However, suppose we had a fleet of low-cost sensors already deployed. 
-A more efficient calibration method would be to colocate it with one of our $N$ calibrated boards and train a model to match the pollutant levels outputted by its calibration function. This risks compounding errors across models, however. 
-We propose calibrating the $N+1$-th sensor to match the intermediate representation outputted by colocated low-cost sensors. Specifically,
-we train the $N + 1$ model to minimize $L(u_N, u_{N + 1})$, or
-the loss between the the two board's intermediary outputs.
-These intermediate representations are meant to be robust to changes in location so training to match these representation will hopefully result in a robust calibration model. We analyze this potential calibration technique by holding out a board from our datasets and training a split model. We then simulate calibrating the held out board by training a sensor model to match the representations produced by another board it was colocated with. We then use this new sensor model with the global calibration function to produce pollutant values. \todo{Move this to methods?}
 
 \iffalse
 
@@ -406,20 +402,22 @@ These intermediate representations are meant to be robust to changes in location
 \subsection{Additional Observations and Recommendations}
 
 \begin{itemize}
+    \item \todo{Model size}
+    \item \todo{Calibrate over a lot of sites}
     \item If one doesn't have access to multiple sites (or only two instead of three), can multiple locations be approximated by just training longer at one site? \emph{maybe}
     \item Translate what we've learned into practical advice for an average citizen scientist group - how can they use this information to improve their work and given typical real-world constraints where can they focus their efforts in order to get the best data quality possible (maybe this section should include a list of hypothetical) 
 \end{itemize}
 
 \section{Conclusion}
 
+A rotating deployment strategy enables benchmarking the transferability of models. We found that overfitting is a concern, especially when transferring high capacity models trained with limited data. Level 2 benchmarks indicate that widening the data distribution is a good strategy to make models robust to transfer and we introduce a novel split-neural network strategy that increases effective data size, increasing the robustness of the model to transfer.
+
+Future work
 \begin{itemize}
-    \item Future work
-    \begin{itemize}
-        \item What is the tradeoff between resolution and accuracy, if any. 
-        \item Mobility causes fast changes. Brief high exposures could be harmful.
-        \item Our sensors change slowly, taking up to 30 seconds to respond to a change in signal
-        \item Noise, Drift?
-    \end{itemize}
+    \item What is the tradeoff between resolution and accuracy, if any. 
+    \item Mobility causes fast changes. Brief high exposures could be harmful.
+    \item Our sensors change slowly, taking up to 30 seconds to respond to a change in signal
+    \item Noise, Drift?
 \end{itemize}
 
 \bibliographystyle{copernicus}
