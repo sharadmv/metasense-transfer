@@ -51,13 +51,39 @@ if __name__ == "__main__":
     for gas in ["NO2", "O3"]:
         for level in [0, 1, 2, 3]:
             for result, result_name in EVALUATIONS.items():
-                fig, ax = plt.subplots(1, len(MODELS))
+                # fig, ax = plt.subplots(1, len(MODELS), sharey=True, sharex=True)
+                fig, ax = plt.subplots()
                 for i, (model, name) in enumerate(MODELS.items()):
-                        data = model_df[model_df['Evaluation'] == result_name]
-                        ax[i].scatter(data["%s crMSE" % gas], data["%s MBE" % gas])
-                        fig.suptitle(result_name)
-                        ax[i].set_title(name)
-                        ax[i].set_xlabel("%s crMSE" % gas)
-                        ax[i].set_ylabel("%s MBE" % gas)
+                    data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.8)
+                    # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
+                    fig.suptitle(result_name)
+                    ax.set_title(name)
+                    ax.set_xlabel("%s crMSE" % gas)
+                    ax.set_ylabel("%s MBE" % gas)
+                    # ax2[i].set_title(name)
+                    # ax2[i].set_xlabel("%s crMSE" % gas)
+                    # ax2[i].set_ylabel("%s MBE" % gas)
+                ax.legend(loc='best')
                 fig.savefig(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))), bbox_inches='tight')
+                # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
+                plt.close(fig)
+    for gas in ["NO2", "O3"]:
+        for result, result_name in EVALUATIONS.items():
+            for i, (model, name) in enumerate(MODELS.items()):
+                fig, ax = plt.subplots()
+                for level in [0, 1, 2, 3]:
+                    data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.8)
+                    # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
+                    fig.suptitle(result_name)
+                    ax.set_title(name)
+                    ax.set_xlabel("%s crMSE" % gas)
+                    ax.set_ylabel("%s MBE" % gas)
+                    # ax2[i].set_title(name)
+                    # ax2[i].set_xlabel("%s crMSE" % gas)
+                    # ax2[i].set_ylabel("%s MBE" % gas)
+                ax.legend(loc='best')
+                fig.savefig(str(out / ('%s_%s_%s_target.png' % (gas, model, result))), bbox_inches='tight')
+                # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
                 plt.close(fig)
