@@ -48,7 +48,7 @@
 
 \begin{abstract}
 
-Advances in environmental monitoring technologies are making it increasingly possible for concerned communities and citizens to collect data in an effort to better understand their local environment and potential exposures. However, communities and citizen scientists often lack the funding, time, and expertise to conduct conventional research projects. While there are challenges related to the quality of data from instruments available to citizen scientists, these tools make it possible to collect data with increased temporal and spatial resolution providing data on a large scale with unprecedented levels of detail. This type of data has the potential to empower people to make personal decisions about their exposure and support the development of local strategies for reducing pollution and improving health outcomes. \todo{(How?) - to which part is the 'how' referring?} 
+Advances in environmental monitoring technologies are making it increasingly possible for concerned communities and citizens to collect data in an effort to better understand their local environment and potential exposures. However, communities and citizen scientists often lack the funding, time, and expertise to conduct conventional research projects. While there are challenges related to the quality of data from instruments available to citizen scientists, these tools make it possible to collect data with increased temporal and spatial resolution providing data on a large scale with unprecedented levels of detail. This type of data has the potential to empower people to make personal decisions about their exposure and support the development of local strategies for reducing pollution and improving health outcomes. \todo{(How?) - to which part is the 'how' referring? - How can people (and also, which people) use the collected data to make any decisions? Do they lobby for traffic reduction or force local industries to pollute less?} 
 
 One of the challenges related to data quality of mobile sensors has been calibration – often sensors are calibrated via field calibration or normalization \todo{(To what does normalization refer?) field normalization (of sensor data to co-located reference data), as described in the next sentence, is just anther term used to describe this method, would you have any recommendations on how to add clarity?}. Field calibration involves co-locating sensor systems with high-quality reference instruments for extended periods, then machine learning and model fitting techniques, such as multiple-linear regression, are used to develop a calibration model for converting raw sensor signals to concentrations. While this method helps to correct for dependencies to ambient conditions (i.e. temperature, humidity, and pressure) and cross-sensitivities with non-target pollutants, there are concerns that calibration models may be overfit to a given location or set of conditions. Calibration models commonly overfit to a particular location on account of the high correlation between diurnal cycles and environmental conditions with pollutant levels. Sensors trained at a particular field site may provide less reliable data as sensors are moved to new locations. Furthermore, as we consider the idea of individuals carrying personal, mobile air quality monitoring systems we will need to ensure that the calibration models the users rely on are robust across a variety of new locations.
 
@@ -120,9 +120,9 @@ Modern low-cost electrochemical sensors offer a low cost and low power method to
 
 The environmental sensors (MS5540C and SHT11) accurately measure temperature, humidity, and pressure and are important features for correcting the environmentally related offset in electrochemical sensor readings. The TE Connectivity MS5540C is a barometric pressure sensor capable of measuring across a 10 to 1100 mbar range with 0.1 mbar resolution. Across 0 C to 50 C, the sensor is accurate to within 1 mbar and has a typical drift of +/- 1 mbar per year. The Sensiron SHT11 is a relative humidity sensor capable of measuring across the full range of relative humidity (0 to 100\% RH) with a 0.05\% RH resolution. Both sensors come equipped with temperature sensors with +/-0.8 C and +/-0.4 C accuracy, respectively. The sensors stabilize to environmental changes in under 30 seconds, which is sufficiently fast to capture changes in the local environment.
 
-In order to improve the robustness of the sensors to ambient conditions, the electronics were conformally coated with silicone and placed into a housing with the sensing elements. The housing prevents direct contact with the sensors by providing grates over the electrochemical sensors and a vent near the ambient environmental sensors for humidity, temperature, and barometric pressure. The system relies on passive diffusion of pollutants into the sensors due to the high power cost of active ventilation. The passive diffusion model is acceptable for the mobile sensor use case, though, because external movement of the sensor will cause a higher exchange rate of air into the enclosure.  [do you want to show a picture of the case?]  
+In order to improve the robustness of the sensors to ambient conditions, the electronics were conformally coated with silicone and placed into a housing with the sensing elements. The housing prevents direct contact with the sensors by providing grates over the electrochemical sensors and a vent near the ambient environmental sensors for humidity, temperature, and barometric pressure. The system relies on passive diffusion of pollutants into the sensors due to the high power cost of active ventilation. The passive diffusion model is acceptable for the mobile sensor use case, though, because external movement of the sensor will cause a higher exchange rate of air into the enclosure. \todo{[do you want to show a picture of the case?]}  
 
-For longer term static deployments, such as the presented case study that lasted 6 months, the sensors were placed into a more environmentally robust container. The container was a dry box, measuring 27.4 x 25.1 x 12.4 cm, that was machined to have two sets of two vents on opposing walls. Louvers were installed with two 5 V, 50 mm square axial fans expelling ambient air from one wall and two louvers allowing air to enter the opposite side. The configuration allowed the robust container to equilibrate with the local environment for accurate measurement. Due to the long timeframe of the deployment, a USB charging hub was installed into the container to power the fans, the air quality sensors, and either a BLU Android phone or Wi-Fi cellular hotspot. Each container could hold up to three air quality sensors with cases. The phones and hot spots were used to connect the sensors to the cloud; therefore, we could remotely monitor the sensors’ status in real-time, and perform preliminary data analysis and storage. All sensor nodes also had an SD card to record all measurements locally (increasing the reliability of data storage). 
+For longer term static deployments, such as the presented case study that lasted 6 months, the sensors were placed into a more environmentally robust container. The container was a dry box, measuring 27.4 x 25.1 x 12.4 cm, that was machined to have two sets of two vents on opposing walls. Louvers were installed with two 5 V, 50 mm square axial fans expelling ambient air from one wall and two louvers allowing air to enter the opposite side. The configuration allowed the robust container to equilibrate with the local environment for accurate measurement. Due to the long timeframe of the deployment, a USB charging hub was installed into the container to power the fans, the air quality sensors, and either a BLU Android phone or Wi-Fi cellular hotspot. Each container could hold up to three air quality sensors with cases. The phones and hot spots were used to connect the sensors to the cloud; therefore, we could remotely monitor the sensors’ status in real-time, and perform preliminary data analysis and storage. All sensor nodes also had an SD card to record all measurements locally, increasing the reliability of data storage. 
 
 \begin{figure}[H]
 \centering
@@ -133,14 +133,11 @@ For longer term static deployments, such as the presented case study that lasted
 
 \subsection{MetaSense Software Infrastructure}
 
-We developed the software infrastructure for the MetaSense sensing platform to support multiple usage scenarios. The firmware is configured to support four communication mediums. Every node can communicate via BLE and USB to a control program that can configure the platform and collect data. In addition, the USB port support debugging the sensor behavior, charging the sensors, and update the firmware. Depending on the hardware configuration, Photon or Electron, the MetaSense node can connect directly to the cloud via Wi-Fi or 3G cellular respectively. These platforms support updating the firmware wirelessly (again via Wi-Fi or 3G), along with collecting sensor readings directly in the cloud. Finally, each sensor is equipped with a SD card and all readings can be stored locally.
+We developed the software infrastructure for the MetaSense sensing platform to support multiple usage scenarios. The firmware is configured to support four communication mediums. Every node can communicate via BLE and USB to a control program that can configure the platform and collect real-time data. In addition, the USB connection supports debugging the sensor behavior, charging the sensors, and updating the firmware. Depending on the hardware configuration, Photon or Electron, the MetaSense node can connect directly to the cloud via Wi-Fi or 3G cellular, respectively. These mediums enable over-the-air firmware updates. Each sensor is equipped with an SD card, allowing all readings to be stored locally for redundancy and for deployment situations where energy consumption is critical.
 
-We developed two applications for Android smartphones that leverage the BLE connection of MetaSense. The first application, MetaSense Configurator App, let us configure the hardware, from the reading intervals, to the specific sensors connected to the platform. For example, CO2 and VOC sensor reading are enabled or disabled by the configuration application, depending if these optional sensors have been installed or not. Another configuration performed by this app is enabling or disabling the different communication mediums supported. For example, if we use MetaSense as a mobile sensor tethered to a smartphone, we disable Wi-Fi (or Cellular) radios to save power and collect all data via BLE. The second application – MetaSense App – collects data from the sensor via BLE and store them in a database. The benefit of using this app is that each sensor reading is stamped with time and location information, supporting data analysis for the mobile world. Moreover, users can read the current air quality information on their device, giving them immediate and personalized insight in their exposure to pollutants.
+We developed two applications for Android smartphones that leverage the BLE connection of the MetaSense sensing platform. The first application, MetaSense Configurator App, lets users configure the hardware, adjusting aspects such as sensing frequency, the operation of specific sensors connected to the platform, and the communication mediums utilized. For example, CO2 and VOC sensor readings can be enabled or disabled by the configuration application. In another example, if the MetaSense sensing platform is being used as a mobile sensor tethered to a smartphone over BLE, users can disable Wi-Fi (or Cellular) radios to save power. The second application, the MetaSense App, collects data from the sensor via BLE and stores all readings in a database. The benefit of using this app is that each sensor reading is stamped with time and location information, supporting data analysis for mobile use cases. Moreover, users can read the current air quality information on their device, giving them immediate and personalized insight in their exposure to pollutants.
 
-Finally, we develop a cloud backend in the Amazon cloud. Sensors can be configured to connect directly to this backend (using Wi-Fi or 3G) and transmit all their readings to be stored there. We can then analyze the raw data either directly in the Amazon cloud (we run our machine learning algorithms in virtual machines running in AWS) or they can be downloaded to be analyzed offline. While we use the amazon cloud for our data collection and analysis, the Wi-Fi and 3G modules we use, Particle Photon and Electron respectively, are connected to the Particle cloud that provides a set of additional features we use to update the firmware, configure the nodes, reset them, or monitor their status wirelessly. These, direct to cloud features are key in supporting the type of long-term deployment we performed to collect the dataset used in this paper. For example, when we deploy sensors for months at a time in Shafter, some 200 plus miles away from our University in San Diego, the ability for detect and fix issues remotely is priceless.
-
-\subsection{Environmental Testing Enclosure}
-\todo{(explain how devices were placed into an environmental testing enclosure with active airflow and WiFi hotspots)}
+Finally, we developed a cloud backend in the Amazon cloud. Sensors can be configured to connect directly to this backend using Wi-Fi or 3G and transmit all readings to a database. We can then analyze the raw data either directly in the Amazon cloud by running our machine learning algorithms in virtual machines running in AWS or the data can be downloaded to be analyzed offline. While we use the Amazon cloud for our data collection and analysis, the Wi-Fi and 3G modules also connect to the Particle cloud, which provides a set of additional features including firmware updates, configuring and resetting the nodes, or monitoring their status remotely. These direct-to-cloud features are key to supporting the type of long-term deployments required for air quality sensor calibration such as the dataset collected for this paper.
 
 \subsection{Quantification Techniques and Approaches}
 
@@ -149,7 +146,7 @@ once every 5 seconds. Although we have access to voltages from each electrode (a
 anomalous values according to preset thresholds that search
 for extreme voltage and temperature spikes (\todo{details can be found
 in the appendix}). 
-We obtained minute-averaged O3 and NO2 concentrations from the colocated EPA stations, and minute-averaged our own readings before joining
+We obtained minute-averaged O3 and NO2 concentrations from the co-located EPA stations, and minute-averaged our own readings before joining
 with the EPA data.
 Over all three rounds of data collection, we obtained 1,200,000 measurements after minute-averaging. Each individual dataset was then split 80/20 into a train and test set.
 
@@ -172,8 +169,8 @@ is drastically different from the train distribution.
 
 The MetaSense project is concerned with deploying mobile, portable
 sensors and thus we wish to train calibration models
-that can generalize beyond the data obtained via colocation.
-As previously described, we colocated MetaSense boards with EPA stations across three locations in California (El Cajon, Donovan, Shafter).
+that can generalize beyond the data obtained via co-location.
+As previously described, we co-located MetaSense boards with EPA stations across three locations in California (El Cajon, Donovan, Shafter).
 By training a calibration model on a training data restricted to some sites and testing on the other site, we measure how well particular models generalize to different locations.
 
 We focus on four different baseline models, each trained using the Scikit-Learn Python package: 
@@ -318,9 +315,63 @@ These results suggest good practices when deploying models. Training a complex R
 \end{itemize}
 \fi
 
+To better understand how model performance degrades, we produce
+target plots, which visualize the tradeoff between error and bias.
+The target plots indicate that model bias becomes a much more significant issue
+after moving locations. In \autoref{fig:target-plots-models}, we observe
+that Level 0 and 3 results have relatively low bias with respect
+to error, but Level 1 and 2 have an explosive increase
+in bias. The increase in bias is more pronounced in the higher capacity models, especially random forests. \autoref{fig:target-plots-models} indicates that despite the higher capacity models showing better error and bias in a Level 0 benchmark, the models have very similar error-bias tradeoffs in a Level 1 benchmark, indicating that even a high capacity model cannot avoid this performance degradation.
+
+The large increase in bias suggest that perhaps some sort of correction to a model may go a long way in improving model performance after transfer. This result motivates the use of the split neural network architecture, which has a model-specific correction stage that enables learning (hopefully) unbiased representations of sensor measurements.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/NO2_linear_test_target.png}
+\caption{Linear Regression (NO2)}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/O3_linear_test_target.png}
+\caption{Random Forest (O3)}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/NO2_subu_test_target.png}
+\caption{Random Forest (NO2)}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/O3_subu_test_target.png}
+\caption{Random Forest (O3)}
+\end{subfigure}
+\caption{}
+\label{fig:target-plots-models}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/NO2_level0_test_target.png}
+\caption{Level 0 (NO2)}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/O3_level0_test_target.png}
+\caption{Level 0 (O3)}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/NO2_level1_test_target.png}
+\caption{Level 1 (NO2)}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/O3_level1_test_target.png}
+\caption{Level 1(O3)}
+\end{subfigure}
+\caption{}
+\label{fig:target-plots-levels}
+\end{figure}
+
+
 In general, however, we observe that model performance degrades non-trivially
-when moved to different locations. This decrease in performance could result in overconfidence in a sensor's readings, potentially affecting downstream decisions. We briefly analyze the properties of our data that could result
-in overfitting.
+when moved to different locations. This decrease in performance could result in overconfidence in a sensor's readings, potentially affecting downstream decisions. We briefly analyze the properties of our data that could result in overfitting.
 \todo{(perhaps add something like: the model is overfitting to ambient environmental conditions and not the sensor reading. Many pollutants change with the diurnal cycle of the earth (eg. NO2 turning into O3 only when there is UV light, so NO2 is bigger at night, which is typically cooler and more/less humidity).)}.
 We first investigate how data distributions across sites and times differ. Over each location and round, pollutant values can be highly variable. This is reflected, for example, in \autoref{fig:no2-rounds} where Shafter has higher values of NO2 in Round 1 and 2 but lower in Round 3. Furthermore, in \autoref{fig:o3-rounds}, the distribution of O3 changes remarkably across round and location.
 Similarly, temperature and humidity change significantly across location and round, which can be seen in \autoref{fig:temperature-rounds} and \autoref{fig:humidity-rounds}.
@@ -329,6 +380,19 @@ Similarly, temperature and humidity change significantly across location and rou
 To determine whether models overfit to a particular feature, we evaluate their train and test performance on the datasets with and without the feature. We found that (models overfit to temperature) \todo{fill in this section}.
 \fi
 
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/linear/error_density_temperature_donovan_NO2.png}
+\caption{Temperature - Linear Regression (NO2, Donovan)}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{\baselinedir/linear/error_density_temperature_donovan_O3.png}
+\caption{Temperature - Linear Regression (O3, Donovan)}
+\end{subfigure}
+\caption{}
+\label{fig:target-plots-models}
+\end{figure}
 
 \subsection{Approaches to Increase the Robustness of Calibrations}
 
