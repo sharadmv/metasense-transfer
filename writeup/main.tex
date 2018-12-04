@@ -463,6 +463,7 @@ improvements, even if marginal.
 \end{itemize}
 \fi
 
+\iffalse
 \subsection{Additional Observations and Recommendations}
 
 \begin{itemize}
@@ -471,18 +472,23 @@ improvements, even if marginal.
     \item If one doesn't have access to multiple sites (or only two instead of three), can multiple locations be approximated by just training longer at one site? \emph{maybe}
     \item Translate what we've learned into practical advice for an average citizen scientist group - how can they use this information to improve their work and given typical real-world constraints where can they focus their efforts in order to get the best data quality possible (maybe this section should include a list of hypothetical) 
 \end{itemize}
+\fi
 
 \section{Conclusion}
 
 A rotating deployment strategy enables benchmarking the transferability of models. We found that overfitting is a concern, especially when transferring high capacity models trained with limited data. Level 2 benchmarks indicate that widening the data distribution is a good strategy to make models robust to transfer and we introduce a novel split-neural network strategy that increases effective data size, increasing the robustness of the model to transfer.
 
-Future work
+We hope to extend this work to answer a few key questions that we believe are relevant to the future of low-cost sensor calibration. 
+We hope to determine the effect of temporal resolution on accuracy. Currently, sensors are sampled every five seconds, but ground truth data only exists at the minute level. By averaging our own sensor measurements every minute, we discard data that could potentially be relevant for calibration. We believe recent advances in recurrent neural networks for sequence prediction can help leverage the high-resolution data for robust prediction. In this vein, we also hope determine the effect of mobility on calibration functions. In this paper, we studied the effect of moving sensors from one static location to another but a potent application of low-cost sensing is mobile sensors, perhaps attached to a person or vehicle. A dynamic data distribution is a challenge that we hope our methods can generalize to.
+
+\iffalse
 \begin{itemize}
     \item What is the tradeoff between resolution and accuracy, if any. 
     \item Mobility causes fast changes. Brief high exposures could be harmful.
     \item Our sensors change slowly, taking up to 30 seconds to respond to a change in signal
     \item Noise, Drift?
 \end{itemize}
+\fi
 
 \bibliographystyle{copernicus}
 \bibliography{main.bib}
