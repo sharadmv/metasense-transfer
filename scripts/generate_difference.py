@@ -10,6 +10,7 @@ from collections import OrderedDict
 def parse_args():
     argparser = ArgumentParser()
     argparser.add_argument('path')
+    argparser.add_argument('--retrain', default=None)
 
     return argparser.parse_args()
 
@@ -21,7 +22,7 @@ MODELS = OrderedDict([
     ('linear', "Linear Regression"),
     ('nn-2', "NN[2]"),
     ('nn-4', "NN[4]"),
-    ('subu', "Random Forest")
+    ('subu', "Random Forest"),
 ])
 
 METRICS = ["%s %s"% (gas, metric) for gas in ["NO2", "O3"]
@@ -47,6 +48,13 @@ if __name__ == "__main__":
                 local_df['Level'] = "Level %u" % level
                 local_df['Evaluation'] = result_name
                 model_df = pd.concat([model_df, local_df])
+        if result == 'test' and args.retrain is not None:
+            local_df = pd.read_csv(args.retrain)
+            local_df = local_df[METRICS]
+            local_df['Model'] = "Split-NN"
+            local_df['Level'] = "Level 1"
+            local_df['Evaluation'] = "Test"
+            model_df = pd.concat([model_df, local_df])
 
     for result, result_name in EVALUATIONS.items():
         for metric in METRICS:

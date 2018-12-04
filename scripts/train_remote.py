@@ -1,4 +1,3 @@
-import itertools
 import s3fs
 import time
 import os
@@ -70,9 +69,8 @@ def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
     experiment_name = "-".join("_".join(map(str, x)) for x in experiment)
     print("Experiment name:", experiment_name)
     instance_type = 'm5.large'
-    # ami = 'ami-019728aa43c61ac9c'
-    ami = 'ami-0aff95c47247db35e'
-    spot_price = '0.3'
+    ami = 'ami-019728aa43c61ac9c'
+    spot_price = '0.2'
     round = ",".join([str(x[0]) for x in experiment])
     location = ",".join([str(x[1]) for x in experiment])
     board = ",".join([str(x[2]) for x in experiment])
@@ -134,33 +132,16 @@ def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
 if __name__ == "__main__":
     args = parse_args()
     experiments = set()
-    all_triples = set()
-    # board_map = defaultdict(list)
-    LOCATIONS = {'elcajon', 'shafter', 'donovan'}
-    location_map = defaultdict(set)
-    all_triples = set()
+    board_map = defaultdict(list)
     for round in BOARD_CONFIGURATION:
         for location in BOARD_CONFIGURATION[round]:
             for board in BOARD_CONFIGURATION[round][location]:
-                location_map[location].add((round, location, board))
-                all_triples.add((round, location, board))
-    for location, es in location_map.items():
-        experiments.add(frozenset(all_triples - es))
-    # for location in LOCATIONS:
-        # experiment = set()
-        # for round in BOARD_CONFIGURATION:
-            # for board in BOARD_CONFIGURATION[round][location]:
-                # experiment.add((round, location, board))
-                # all_triples.add((round, location, board))
-        # experiments.add(frozenset(experiment))
-    # for round in BOARD_CONFIGURATION:
-        # for location in BOARD_CONFIGURATION[round]:
-            # for board in BOARD_CONFIGURATION[round][location]:
-                # experiments.add(frozenset(((round, location, board),)))
-                # board_map[board].append((round, location))
-    # for board in board_map:
-        # triples = set((a, b, board) for a, b in board_map[board])
-        # experiments.add(frozenset(all_triples - triples))
+                experiments.add(frozenset(((round, location, board),)))
+                board_map[board].append((round, location))
+    for board in board_map:
+        triples = set((a, b, board) for a, b in board_map[board])
+        for triple in triples:
+            experiments.add(frozenset(triples - {triple}))
     fs = s3fs.S3FileSystem(anon=False)
     out_dir = Path(BUCKET_NAME) / args.experiment
     def process(x):
@@ -168,11 +149,11 @@ if __name__ == "__main__":
         return (int(a), b, int(c))
     try:
         existing = set(frozenset(map(process, frozenset(x.split('/')[-1].split("-")))) for x in fs.ls(out_dir))
-        existing_map = {frozenset(map(process, frozenset(x.split('/')[-1].split("-")))):x for x in fs.ls(out_dir)}
     except:
         existing = set()
     print("Number of experiments:", len(experiments))
     print("Number of existing:", len(existing))
+    print(experiments)
     if args.run:
         experiments -= existing
         print(experiments)
@@ -182,10 +163,12 @@ if __name__ == "__main__":
         commands = []
         for experiment in experiments:
             experiment = list(experiment)
-            for ex in existing:
-                if ex == frozenset(experiment):
-                    e = Path(existing_map[ex]).basename()
-            print(e)
-            commands.append("python scripts/generate_split.py %s %s --level1" % (args.experiment, e))
+            if len(experiment) == 2:
+                es = ["-".join("_".join(map(str, x)) for x in e) for e in [experiment, reversed(experiment)]]
+            else:
+                es = ["-".join("_".join(map(str, x)) for x in experiment)]
+            for e in es:
+                commands.append("python scripts/generate_split.py %s %s --level1" % (args.experiment, e))
+        import ipdb; ipdb.set_trace()
         pool = ThreadPool(10)
         pool.map(os.system, commands)

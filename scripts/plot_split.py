@@ -45,6 +45,8 @@ def get_results(models):
     for model_name in tqdm.tqdm(models):
         if model_name[-4] == '.' or '_' not in model_name:
             continue
+        if len(model_name.split("-")) > 2:
+            continue
         model_path = Path(model_name)
         model_split = model_path.split("/")[-1].split("-")
         model_splits = [x.split("_") for x in model_split]
@@ -93,7 +95,10 @@ def plot_results(results, column, out_path):
 @click.argument('models', nargs=-1, type=str)
 def main(name, out_dir, out_path, subu_path, models):
     out_path = Path(out_path)
-    split_results, split_models = get_results([out_path / m for m in models])
+    if models == ['*']:
+        split_results, split_models = get_results([out_path / m for m in models])
+    else:
+        split_results, split_models = get_results(out_path.parent.listdir())
     out_path = out_path / out_dir
     out_path.mkdir_p()
     subu_results = load_subu(Path(subu_path), split_models, name)

@@ -19,15 +19,18 @@ class Model(object, metaclass=ABCMeta):
         y = args[-1]
         preds = self.predict(*args[:-1])
         y = y.as_matrix()
-        mean_y = y.mean(axis=0)
-        mean_pred = preds.mean(axis=0)
-        crmse = np.sqrt(np.square((preds - mean_pred[None]) - (y - mean_y[None])).mean(axis=0))
-        mae = mean_absolute_error(y, preds, multioutput='raw_values')
-        mse = mean_squared_error(y, preds, multioutput='raw_values')
-        r2 = r2_score(y, preds, multioutput='raw_values')
+        return self._score(y, preds), preds
+
+    def _score(self, y_true, y_pred):
+        mean_y = y_true.mean(axis=0)
+        mean_pred = y_pred.mean(axis=0)
+        crmse = np.sqrt(np.square((y_pred - mean_pred[None]) - (y_true - mean_y[None])).mean(axis=0))
+        mae = mean_absolute_error(y_true, y_pred, multioutput='raw_values')
+        mse = mean_squared_error(y_true, y_pred, multioutput='raw_values')
+        r2 = r2_score(y_true, y_pred, multioutput='raw_values')
         rmse = np.sqrt(mse)
-        mbe = (y - preds).mean(axis=0)
-        cvmae = np.array(mae / y.mean(axis=0))
+        mbe = (y_true - y_pred).mean(axis=0)
+        cvmae = np.array(mae / y_true.mean(axis=0))
         return {
             'MAE': mae,
             'CvMAE': cvmae,
@@ -36,4 +39,4 @@ class Model(object, metaclass=ABCMeta):
             'rMSE': rmse,
             'R^2': r2,
             'crMSE': crmse
-        }, preds
+        }

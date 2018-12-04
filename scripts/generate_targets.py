@@ -10,6 +10,7 @@ from collections import OrderedDict
 def parse_args():
     argparser = ArgumentParser()
     argparser.add_argument('path')
+    argparser.add_argument('--split', default=None)
 
     return argparser.parse_args()
 
@@ -47,6 +48,16 @@ if __name__ == "__main__":
                 local_df['Level'] = "Level %u" % level
                 local_df['Evaluation'] = result_name
                 model_df = pd.concat([model_df, local_df])
+        if result == 'test' and args.split is not None:
+            local_df_ = pd.read_csv(args.split)
+            local_df_ = local_df_[local_df_["Calibration"] == 'Split-NN']
+            local_df = local_df_[METRICS]
+            local_df['Model'] = "Split-NN"
+            local_df['Level'] = local_df_['Benchmark']
+            local_df['Evaluation'] = result_name
+            model_df = pd.concat([model_df, local_df])
+    if args.split is not None:
+        MODELS["Split-NN"] = "Split-NN"
 
     for gas in ["NO2", "O3"]:
         for level in [0, 1, 2, 3]:
@@ -54,27 +65,34 @@ if __name__ == "__main__":
                 # fig, ax = plt.subplots(1, len(MODELS), sharey=True, sharex=True)
                 fig, ax = plt.subplots()
                 for i, (model, name) in enumerate(MODELS.items()):
+                    if model == 'Split-NN' and result != 'test':
+                        continue
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
-                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.8)
+                    if model == 'Split-NN' and level == 1 and result == 'test':
+                        import ipdb; ipdb.set_trace()
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.8, s=10)
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
-                    fig.suptitle(result_name)
-                    ax.set_title(name)
-                    ax.set_xlabel("%s crMSE" % gas)
-                    ax.set_ylabel("%s MBE" % gas)
+                # ax.set_title(name)
+                ax.set_xlabel("%s crMSE" % gas)
+                ax.set_ylabel("%s MBE" % gas)
                     # ax2[i].set_title(name)
                     # ax2[i].set_xlabel("%s crMSE" % gas)
                     # ax2[i].set_ylabel("%s MBE" % gas)
                 ax.legend(loc='best')
+                print(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))))
+                # import ipdb; ipdb.set_trace()
                 fig.savefig(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))), bbox_inches='tight')
                 # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
                 plt.close(fig)
     for gas in ["NO2", "O3"]:
         for result, result_name in EVALUATIONS.items():
             for i, (model, name) in enumerate(MODELS.items()):
+                if model == 'Split-NN' and result != 'test':
+                    continue
                 fig, ax = plt.subplots()
                 for level in [0, 1, 2, 3]:
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
-                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.8)
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.6)
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                     fig.suptitle(result_name)
                     ax.set_title(name)

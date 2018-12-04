@@ -81,13 +81,13 @@ def level1(out_dir, experiment_dir):
 
 
     differences = pd.DataFrame(columns=[
-        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+        # 'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
     train_results = pd.DataFrame(columns=[
-        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+        # 'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
     test_results = pd.DataFrame(columns=[
-        'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
+        # 'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
     for triple in tqdm.tqdm(list(get_triples())):
         train_result = benchmark(model, triple, test=False)
