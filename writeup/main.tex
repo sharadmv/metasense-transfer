@@ -180,43 +180,7 @@ We focus on four different baseline models, each trained using the Scikit-Learn 
     \item \textbf{Four-layer neural network:} Same as two-layer neural network, but four hidden layers of width 200 instead of two.
     \item \textbf{Random forest:} We divide our data into five folds and train a random forest of size 100 on each fold, resulting in 500 trees. We aim to reproduce the strategy of \citet{Zimmerman2018} as closely as possible.
 \end{enumerate}
-With each of these four models, we performed a suite of identical benchmarks that measure various model transfer capabilities. We first initially split all datasets uniformly at random into train and test subsets, reserving 20\% of each board's data for testing.
-In each benchmark, we progressively widen the training distribution by combining training data from more locations, while keeping the test set dataset from one location. We thus have four ``levels'' of benchmarks:
-\begin{itemize}
-    \item \textbf{Level 0:} train a model on one location and test on the same location
-    \item \textbf{Level 1:} train a model on one location and test on another location
-    \item \textbf{Level 2:} train a model on two locations and test on a third location 
-    \item \textbf{Level 3:} train a model on three locations and test on one of the three
-\end{itemize}
-\begin{figure}
-\begin{subfigure}{0.23\textwidth}
-\includegraphics[width=\textwidth]{writeup/img/level0.png}
-\caption{Level 0}
-\end{subfigure}
-~
-\begin{subfigure}{0.23\textwidth}
-\includegraphics[width=\textwidth]{writeup/img/level1.png}
-\caption{Level 1}
-\end{subfigure}
-~
-\begin{subfigure}{0.23\textwidth}
-\includegraphics[width=\textwidth]{writeup/img/level2.png}
-\caption{Level 2}
-\end{subfigure}
-~
-\begin{subfigure}{0.23\textwidth}
-\includegraphics[width=\textwidth]{writeup/img/level3.png}
-\caption{Level 3}
-\end{subfigure}
-\caption{Levels}
-\end{figure}
 
-Notably in Level 0 and Level 3 benchmarks, the train and test data distribution have explicit overlap, whereas in Level 1 and 2, there is no explicit overlap. 
-The goal of this benchmark suite is to evaluate how expanding the data distribution can improve model transferability. We expect Level 0 performance to be the best, as the train and test distribution are identical. We also expect Level 1 performance to be the worst, as the training distribution is the narrowest and Level 3 to be close to Level 0 performance, due to the overlap in train and test distributions. 
-Furthermore, we expect higher capacity models to overfit more to the training dataset, and thus have the biggest gap between Level 0 and Level 1. Thus, we expect linear regression to have more consistent performance across the benchmarks, followed by the 2-layer neural network, 4-layer neural network, and finally the random forest.
-
-We ran each benchmark across all possible permutations of location and board,
-measuring six metrics: root mean squared error (rMSE), centered root mean squared error (crMSE), mean absolute error (MAE), the coefficient of variation of mean absolute error (CvMAE), mean bias error (MBE), and coefficient of determination ($R^2$).
 \iffalse
 \begin{align*}
     \mathrm{MAE}(h(x), y) &= |h(x) - y| \\
@@ -273,7 +237,43 @@ compounding the noise and error that already exist.
 \section{Results \& Discussion}
 
 \subsection{Robustness of Different Sensor Quantification Techniques Across New Locations}
+We first evaluated a set of four baseline models: multiple linear regression, two-layer neural network (NN-2), four-layer neural network (NN-4), and random forest regressor (RF). With each of these four models, we performed a suite of identical benchmarks that measure the robustness of models to transfer. We first initially split all datasets uniformly at random into train and test subsets, reserving 20\% of each board's data for testing.
+In each benchmark, we progressively widened the training distribution by combining training data from more locations, while keeping the test set dataset from one location. We have four ``levels'' of such benchmarks:
+\begin{itemize}
+    \item \textbf{Level 0:} train a model on one location and test on the same location
+    \item \textbf{Level 1:} train a model on one location and test on another location
+    \item \textbf{Level 2:} train a model on two locations and test on a third location 
+    \item \textbf{Level 3:} train a model on three locations and test on one of the three
+\end{itemize}
+\begin{figure}
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level0.png}
+\caption{Level 0}
+\end{subfigure}
+~
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level1.png}
+\caption{Level 1}
+\end{subfigure}
+~
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level2.png}
+\caption{Level 2}
+\end{subfigure}
+~
+\begin{subfigure}{0.23\textwidth}
+\includegraphics[width=\textwidth]{writeup/img/level3.png}
+\caption{Level 3}
+\end{subfigure}
+\caption{Levels}
+\end{figure}
 
+Notably in Level 0 and Level 3 benchmarks, the train and test data distribution have explicit overlap, whereas in Level 1 and 2, there is no explicit overlap. 
+The goal of this benchmark suite is to evaluate how expanding the data distribution can improve model transferability. We expect Level 0 performance to be the best, as the train and test distribution are identical. We also expect Level 1 performance to be the worst, as the training distribution is the narrowest and Level 3 to be close to Level 0 performance, due to the overlap in train and test distributions. 
+Furthermore, we expect higher capacity models to overfit more to the training dataset, and thus have the biggest gap between Level 0 and Level 1. Thus, we expect linear regression to have more consistent performance across the benchmarks, followed by the 2-layer neural network, 4-layer neural network, and finally the random forest.
+
+We ran each benchmark across all possible permutations of location and board,
+measuring six metrics: root mean squared error (rMSE), centered root mean squared error (crMSE), mean absolute error (MAE), the coefficient of variation of mean absolute error (CvMAE), mean bias error (MBE), and coefficient of determination ($R^2$).
 We observe that on average, as model capacity increases, Level 0 error decreases. This is consistent across both NO2 and O3 prediction and reflects the ability of the model to fit the train distribution. Level 1 and 2 benchmarks reflect the ability of a model to generalize to a distribution it hasn't seen before and we see that in these benchmarks, errors are much higher and the gaps between models is smaller.
 Furthermore, Level 2 error is lower than Level 1 error. By adding data from another site, effectively widening the training data distribution, the models become more robust to the unseen test distribution. Level 3 performance aligns closely with Level 0 performance, which is to be expected, since in both cases
 the train distribution matches the test distribution.
@@ -391,7 +391,7 @@ To determine whether models overfit to a particular feature, we evaluate their t
 \caption{Temperature - Linear Regression (O3, Donovan)}
 \end{subfigure}
 \caption{}
-\label{fig:target-plots-models}
+\label{fig:error-density}
 \end{figure}
 
 \subsection{Approaches to Increase the Robustness of Calibrations}
