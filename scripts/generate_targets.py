@@ -94,7 +94,7 @@ if __name__ == "__main__":
                 fig, ax = plt.subplots()
                 for j, level in enumerate([0, 1, 2, 3]):
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
-                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.6, s=10, marker=markers[i])
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.6, s=10, marker=markers[j])
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                     fig.suptitle(result_name)
                     ax.set_title(name)
