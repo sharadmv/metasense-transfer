@@ -1,3 +1,4 @@
+import itertools
 import ipdb
 from pathlib import Path
 import pandas as pd
@@ -33,6 +34,7 @@ EVALUATIONS = {
     "test": "Test",
     "difference": "Train - Test",
 }
+markers = ['P', 'o', 'X', 'D', 's']
 
 if __name__ == "__main__":
     args = parse_args()
@@ -68,9 +70,10 @@ if __name__ == "__main__":
                     if model == 'Split-NN' and result != 'test':
                         continue
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
-                    if model == 'Split-NN' and level == 1 and result == 'test':
-                        import ipdb; ipdb.set_trace()
-                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.8, s=10)
+                    # if model == 'Split-NN' and level == 1 and result == 'test':
+                        # import ipdb; ipdb.set_trace()
+                    print(markers[i], name)
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.6, s=10, marker=markers[i])
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                 # ax.set_title(name)
                 ax.set_xlabel("%s crMSE" % gas)
@@ -80,8 +83,7 @@ if __name__ == "__main__":
                     # ax2[i].set_ylabel("%s MBE" % gas)
                 ax.legend(loc='best')
                 print(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))))
-                # import ipdb; ipdb.set_trace()
-                fig.savefig(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))), bbox_inches='tight')
+                fig.savefig(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))), bbox_inches='tight', dpi=120)
                 # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
                 plt.close(fig)
     for gas in ["NO2", "O3"]:
@@ -90,9 +92,9 @@ if __name__ == "__main__":
                 if model == 'Split-NN' and result != 'test':
                     continue
                 fig, ax = plt.subplots()
-                for level in [0, 1, 2, 3]:
+                for j, level in enumerate([0, 1, 2, 3]):
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
-                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.6)
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.6, s=10, marker=markers[i])
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                     fig.suptitle(result_name)
                     ax.set_title(name)
@@ -102,6 +104,6 @@ if __name__ == "__main__":
                     # ax2[i].set_xlabel("%s crMSE" % gas)
                     # ax2[i].set_ylabel("%s MBE" % gas)
                 ax.legend(loc='best')
-                fig.savefig(str(out / ('%s_%s_%s_target.png' % (gas, model, result))), bbox_inches='tight')
+                fig.savefig(str(out / ('%s_%s_%s_target.png' % (gas, model, result))), bbox_inches='tight', dpi=120)
                 # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
                 plt.close(fig)
