@@ -364,6 +364,24 @@ when moved to different locations. This decrease in performance could result in 
 We first investigate how data distributions across sites and times differ. Over each location and round, pollutant values can be highly variable. This is reflected, for example, in \autoref{fig:no2-rounds} where Shafter has higher values of NO2 in Round 1 and 2 but lower in Round 3. Furthermore, in \autoref{fig:o3-rounds}, the distribution of O3 changes remarkably across round and location.
 Similarly, temperature and humidity change significantly across location and round, which can be seen in \autoref{fig:temperature-rounds} and \autoref{fig:humidity-rounds}.
 
+
+Recommendations for Density Plots:
+
+- Figure: three rows (one for each model), in each row add error density plots for O3 for Abs Hum; make the max/min on all axes the same to make comparisons easier, make color coding consistent
+- Placement: I would recommend placing this figure and the disc. before the target plots (then the flow can be (1) overall results, (2) digging into why we are seeing what we're seeing, (3) what does it mean and what are the implications (error vs. bias disc.)
+
+Observation to work into the text: 
+\begin{itemize}
+    \item The results are in line with what we would expect for the MLR: training at Donovan and testing at El Cajon (at humidites that were included in the training data at Donovan), we see worse performance at Shafter than El Cajon, at humidities where extrapolation is not occurring. This suggests that background conditions play a factor (other pollutants, different background pollutant profiles, etc.) as well as environmental, because we would expect more similar background conditions between the two SD sites.
+    \item When we train at El Cajon and test at Donovan (for MLR) again we see what we would expect - extrapolation in humidity values (environmental conditions) results in enhanced error (panel b, elevated error at high and low humidities). 
+    \item Finally, training at Shafter seems to result in comparable errors at the two San Diego sites. 
+    \item When we look at the RF results the story changes, across the board, no matter where we train the errors at the other two sites seem comparable, regardless of whether we saw those humidity values at the training site. One way to look at this is that the errors at the training site are not very indicative of errors at a new site - even in the same city. This seems to be more evidence of over-fitting.
+    \item NEXT: How dos this look for NN-2? Are the results similar to the RF or MLR? Or is it somewhere in between? 
+    
+\end{itemize}
+
+
+
 \iffalse
 To determine whether models overfit to a particular feature, we evaluate their train and test performance on the datasets with and without the feature. We found that (models overfit to temperature) \todo{fill in this section}.
 \fi
@@ -453,8 +471,22 @@ We also evaluated calibrating new boards using the Split-NN approach. Rather tha
 \end{itemize}
 \fi
 
-\iffalse
 \subsection{Additional Observations and Recommendations}
+
+As low-cost sensor studies move from understanding sensor signal performance to how this performance is affected by moving sensors to new sampling locations or utilizing them in new applications, it’s important that results are translated into best practices to support the collection of usable high quality data. This is particularly important given the interest in sensors by communities based organizations and citizen scientists. While there are limitations to the work presented here, given that we only examined electrochemical O3 and NO2 sensors and the sampling sites were limited to three in California. There is still a need to continue examining different sensors and to learn more about the consistency of results across locations and situations. 
+
+Considering these limitations, there are a number of recommendations drawn from the results of this study that may be useful for communities and citizens scientists interested in using low-cost sensors. 
+ 
+\begin{itemize}
+    \item When conducting a “field calibration” (or co-locating your sensors with trusted reference monitors), co-locating your sensors at multiple reference locations will likely improve the reliability of the data from your sensors when they are moved to the field sites.
+    \item If you are conducting a field calibration and are unsure of how different your field sites are from your calibration site, consider choosing a simpler calibration model, such as a multiple linear regression model.
+    \item When conducting a field calibration, placing sensors at different co-location sites then pooling that data and building a calibration model built on data from multiple sites will result in a calibration model that is more robust in new locations. 
+\end{itemize}
+
+Essentially, the recommendations presented here emphasize the need for thoughtful study design when using low-cost sensors. Users need to be thoughtful about where and how calibration is occurring, as well as any potential repercussions of a particular choice – for example the decision to use a high-capacity machine learning model.
+
+
+Previous text:
 
 \begin{itemize}
     \item \todo{Model size}
@@ -462,11 +494,11 @@ We also evaluated calibrating new boards using the Split-NN approach. Rather tha
     \item If one doesn't have access to multiple sites (or only two instead of three), can multiple locations be approximated by just training longer at one site? \emph{maybe}
     \item Translate what we've learned into practical advice for an average citizen scientist group - how can they use this information to improve their work and given typical real-world constraints where can they focus their efforts in order to get the best data quality possible (maybe this section should include a list of hypothetical) 
 \end{itemize}
-\fi
 
 \section{Conclusion}
 
-A rotating deployment strategy enables benchmarking the transferability of models. We found that overfitting is a concern, especially when transferring high capacity models trained with limited data. Level 2 benchmarks indicate that widening the data distribution is a good strategy to make models robust to transfer and we introduce a novel split-neural network strategy that increases effective data size, increasing the robustness of the model to transfer.
+\todo{split up last sentence, restate the problem a bit more, more details}
+A rotating deployment strategy enables benchmarking the transferability of models. We found that overfitting is a concern, especially when transferring high capacity models trained with limited data. Level 1 and 2 benchmarks indicate that widening the data distribution is a good strategy to make models robust to transfer and we introduce a novel split-neural network strategy that increases effective data size, increasing the robustness of the model to transfer.
 
 We hope to extend this work to answer a few key questions that we believe are relevant to the future of low-cost sensor calibration. 
 We hope to determine the effect of temporal resolution on accuracy. Currently, sensors are sampled every five seconds, but ground truth data only exists at the minute level. By averaging our own sensor measurements every minute, we discard data that could potentially be relevant for calibration. We believe recent advances in recurrent neural networks for sequence prediction can help leverage the high-resolution data for robust prediction. In this vein, we also hope determine the effect of mobility on calibration functions. In this paper, we studied the effect of moving sensors from one static location to another but a potent application of low-cost sensing is mobile sensors, perhaps attached to a person or vehicle. A dynamic data distribution is a challenge that we hope our methods can generalize to.
