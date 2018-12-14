@@ -105,6 +105,6 @@ if __name__ == "__main__":
                     for metric, value in test_score.items():
                         result["%s %s" % (gas, metric)] = value[i]
                 results = results.append(result, ignore_index=True)
-            print(results)
+    print(results.describe())
     with open(args.out_path, 'w') as fp:
         fp.write(results.to_csv())

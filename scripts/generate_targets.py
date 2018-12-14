@@ -12,6 +12,8 @@ def parse_args():
     argparser = ArgumentParser()
     argparser.add_argument('path')
     argparser.add_argument('--split', default=None)
+    argparser.add_argument('--suffix', default='')
+    argparser.add_argument('--ignore-models', nargs='*')
 
     return argparser.parse_args()
 
@@ -25,6 +27,7 @@ MODELS = OrderedDict([
     ('nn-4', "NN[4]"),
     ('subu', "Random Forest")
 ])
+current_palette = sns.color_palette()
 
 METRICS = ["%s %s" % (gas, metric) for gas in ["NO2", "O3"]
            for metric in ["crMSE", "MBE"]]
@@ -41,6 +44,9 @@ if __name__ == "__main__":
     path = Path(args.path)
     out = Path(args.path)
     model_df = pd.DataFrame()
+    suffix = args.suffix
+    if args.suffix:
+        suffix = '-' + args.suffix
     for result, result_name in EVALUATIONS.items():
         for level in [0, 1, 2, 3]:
             for model, model_name in MODELS.items():
@@ -67,13 +73,16 @@ if __name__ == "__main__":
                 # fig, ax = plt.subplots(1, len(MODELS), sharey=True, sharex=True)
                 fig, ax = plt.subplots()
                 for i, (model, name) in enumerate(MODELS.items()):
+                    if model in args.ignore_models:
+                        print("Ignoring:", model)
+                        continue
                     if model == 'Split-NN' and result != 'test':
                         continue
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
                     # if model == 'Split-NN' and level == 1 and result == 'test':
                         # import ipdb; ipdb.set_trace()
                     print(markers[i], name)
-                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.6, s=10, marker=markers[i])
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.6, s=10, marker=markers[i], color=current_palette[i])
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                 # ax.set_title(name)
                 ax.set_xlabel("%s crMSE" % gas)
@@ -82,19 +91,21 @@ if __name__ == "__main__":
                     # ax2[i].set_xlabel("%s crMSE" % gas)
                     # ax2[i].set_ylabel("%s MBE" % gas)
                 ax.legend(loc='best')
-                print(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))))
-                fig.savefig(str(out / ('%s_level%s_%s_target.png' % (gas, level, result))), bbox_inches='tight', dpi=120)
+                print(str(out / ('%s_level%s_%s_target%s.png' % (gas, level, result, suffix))))
+                fig.savefig(str(out / ('%s_level%s_%s_target%s.png' % (gas, level, result, suffix))), bbox_inches='tight', dpi=120)
                 # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
                 plt.close(fig)
     for gas in ["NO2", "O3"]:
         for result, result_name in EVALUATIONS.items():
             for i, (model, name) in enumerate(MODELS.items()):
+                if model in args.ignore_models:
+                    print("Ignoring:", model)
                 if model == 'Split-NN' and result != 'test':
                     continue
                 fig, ax = plt.subplots()
                 for j, level in enumerate([0, 1, 2, 3]):
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
-                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.6, s=10, marker=markers[j])
+                    ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label="Level %u" % level, alpha=0.6, s=10, marker=markers[j], color=current_palette[i])
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                     fig.suptitle(result_name)
                     ax.set_title(name)
@@ -104,6 +115,6 @@ if __name__ == "__main__":
                     # ax2[i].set_xlabel("%s crMSE" % gas)
                     # ax2[i].set_ylabel("%s MBE" % gas)
                 ax.legend(loc='best')
-                fig.savefig(str(out / ('%s_%s_%s_target.png' % (gas, model, result))), bbox_inches='tight', dpi=120)
+                fig.savefig(str(out / ('%s_%s_%s_target%s.png' % (gas, model, result, suffix))), bbox_inches='tight', dpi=120)
                 # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
                 plt.close(fig)
