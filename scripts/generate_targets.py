@@ -68,8 +68,11 @@ if __name__ == "__main__":
         MODELS["Split-NN"] = "Split-NN"
 
     for gas in ["NO2", "O3"]:
-        for level in [0, 1, 2, 3]:
-            for result, result_name in EVALUATIONS.items():
+        for result, result_name in EVALUATIONS.items():
+            data_f = model_df[model_df['Evaluation'] == result_name]
+            x_axis = data_f["%s crMSE" % gas].min(), data_f["%s crMSE" % gas].max()
+            y_axis = data_f["%s MBE" % gas].min(), data_f["%s MBE" % gas].max()
+            for level in [0, 1, 2, 3]:
                 # fig, ax = plt.subplots(1, len(MODELS), sharey=True, sharex=True)
                 fig, ax = plt.subplots()
                 for i, (model, name) in enumerate(MODELS.items()):
@@ -85,6 +88,9 @@ if __name__ == "__main__":
                     ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.6, s=10, marker=markers[i], color=current_palette[i])
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                 # ax.set_title(name)
+                print("Setting limit:", x_axis, y_axis)
+                ax.set_xlim(x_axis)
+                ax.set_ylim(y_axis)
                 ax.set_xlabel("%s crMSE" % gas)
                 ax.set_ylabel("%s MBE" % gas)
                     # ax2[i].set_title(name)
@@ -97,6 +103,9 @@ if __name__ == "__main__":
                 plt.close(fig)
     for gas in ["NO2", "O3"]:
         for result, result_name in EVALUATIONS.items():
+            data_f = model_df[model_df['Evaluation'] == result_name]
+            x_axis = data_f["%s crMSE" % gas].min(), data_f["%s crMSE" % gas].max()
+            y_axis = data_f["%s MBE" % gas].min(), data_f["%s MBE" % gas].max()
             for i, (model, name) in enumerate(MODELS.items()):
                 if model in args.ignore_models:
                     print("Ignoring:", model)
@@ -114,6 +123,9 @@ if __name__ == "__main__":
                     # ax2[i].set_title(name)
                     # ax2[i].set_xlabel("%s crMSE" % gas)
                     # ax2[i].set_ylabel("%s MBE" % gas)
+                print("Setting limit:", x_axis, y_axis)
+                ax.set_xlim(x_axis)
+                ax.set_ylim(y_axis)
                 ax.legend(loc='best')
                 fig.savefig(str(out / ('%s_%s_%s_target%s.png' % (gas, model, result, suffix))), bbox_inches='tight', dpi=120)
                 # fig2.savefig(str(out / ('%s_level%s_%s_target_norm.png' % (gas, level, result))), bbox_inches='tight')
