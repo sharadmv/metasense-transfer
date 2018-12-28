@@ -19,6 +19,11 @@ Y_features = ['epa-no2', 'epa-o3']
 
 BUCKET_NAME = "metasense-paper-results"
 
+REVERSE_NAME_MAP = {
+    'e': 'elcajon',
+    's': 'shafter',
+    'd': 'donovan',
+}
 def parse_args():
     argparser = ArgumentParser()
     argparser.add_argument('experiment')
@@ -64,21 +69,22 @@ def get_triples():
                 yield (round, location, board)
 
 def level1(out_dir, experiment_dir):
-    RESULTS = {}
 
     with fs.open(str(experiment_dir / 'models' / 'model.pkl'), 'rb') as fp:
         model = joblib.load(fp)
 
-    for round, location, board in get_triples():
-        if (round, location, board) not in RESULTS:
-            RESULTS[(round, location, board)] = []
-        for round_ in DATA:
-            for location_ in DATA[round_]:
-                if (round, location) == (round_, location_):
-                    continue
-                if board in DATA[round_][location_]:
-                    RESULTS[(round, location, board)].append((round_, location_))
-
+    all_experiments = set()
+    for round in DATA:
+        for location in DATA[round]:
+            for board in DATA[round][location]:
+                all_experiments.add((round, location, board))
+    all_experiments = frozenset(all_experiments)
+    def process(x):
+        print(x)
+        a, b, c = x.split("_")
+        return (int(a), REVERSE_NAME_MAP[b], int(c))
+    experiment = all_experiments - frozenset(map(process, frozenset(args.name.split("-"))))
+    boards = set([x[2] for x in experiment])
 
     differences = pd.DataFrame(columns=[
         # 'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
@@ -89,7 +95,11 @@ def level1(out_dir, experiment_dir):
     test_results = pd.DataFrame(columns=[
         # 'Model', 'NO2 MAE', 'O3 MAE', 'NO2 CvMAE', 'O3 CvMAE'
     ])
+    print("Experiment", experiment)
     for triple in tqdm.tqdm(list(get_triples())):
+        if triple[2] not in boards or triple in experiment:
+            print("Skipping", triple)
+            continue
         train_result = benchmark(model, triple, test=False)
         test_result  = benchmark(model, triple, test=True)
         difference = {}

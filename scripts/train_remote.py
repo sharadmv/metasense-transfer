@@ -31,6 +31,17 @@ def parse_args():
 ec2 = boto3.client('ec2')
 completed_requests = set()
 
+NAME_MAP = {
+    'elcajon': 'e',
+    'shafter': 's',
+    'donovan': 'd',
+}
+REVERSE_NAME_MAP = {
+    'e': 'elcajon',
+    's': 'shafter',
+    'd': 'donovan',
+}
+
 def get_spot_status(request_id):
     while True:
         try:
@@ -66,10 +77,10 @@ def wait_on_ssh(instance_ip):
 
 def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
     print(experiment)
-    experiment_name = "-".join("_".join(map(str, x)) for x in experiment)
+    experiment_name = "-".join("_".join((str(x[0]), NAME_MAP[x[1]], str(x[2]))) for x in experiment)
     print("Experiment name:", experiment_name)
     instance_type = 'm5.large'
-    ami = 'ami-019728aa43c61ac9c'
+    ami = 'ami-094b2cdcc1b66470e'
     spot_price = '0.2'
     round = ",".join([str(x[0]) for x in experiment])
     location = ",".join([str(x[1]) for x in experiment])
@@ -129,24 +140,72 @@ def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
         batch_size=args.batch_size
     ))
 
+def get_location_experiment():
+    for round in BOARD_CONFIGURATION:
+        locations = BOARD_CONFIGURATION[round].keys()
+        location_triples = {}
+        for location in locations:
+            for board in BOARD_CONFIGURATION[round][location]:
+                if location not in location_triples:
+                    location_triples[location] = set()
+                location_triples[location].add((round, location, board))
+        yield from [frozenset((a, b, c)) for a in location_triples['shafter'] for b in location_triples['elcajon'] for c in location_triples['donovan']]
+
+def get_seasonal_experiment():
+    round_triples = {}
+    for round in BOARD_CONFIGURATION:
+        locations = BOARD_CONFIGURATION[round].keys()
+        for location in locations:
+            for board in BOARD_CONFIGURATION[round][location]:
+                if round not in round_triples:
+                    round_triples[round] = set()
+                round_triples[round].add((round, location, board))
+    yield from [
+        frozenset((a, b, c))
+        for a in round_triples[2]
+        for b in round_triples[3]
+        for c in round_triples[4]
+        if a[1] == b[1] == c[1]
+    ]
+
+
 if __name__ == "__main__":
     args = parse_args()
     experiments = set()
     board_map = defaultdict(list)
+    all_experiments = set()
     for round in BOARD_CONFIGURATION:
         for location in BOARD_CONFIGURATION[round]:
             for board in BOARD_CONFIGURATION[round][location]:
-                experiments.add(frozenset(((round, location, board),)))
-                board_map[board].append((round, location))
-    for board in board_map:
-        triples = set((a, b, board) for a, b in board_map[board])
-        for triple in triples:
-            experiments.add(frozenset(triples - {triple}))
+                all_experiments.add((round, location, board))
+    all_experiments = frozenset(all_experiments)
+    # for experiment in get_location_experiment():
+    for experiment in get_seasonal_experiment():
+        experiments.add(all_experiments - experiment)
+    # for round in BOARD_CONFIGURATION:
+        # for location in BOARD_CONFIGURATION[round]:
+            # for board in BOARD_CONFIGURATION[round][location]:
+                # experiments.add(frozenset(((round, location, board),)))
+                # board_map[board].append((round, location))
+    # for board in board_map:
+        # triples = set((a, b, board) for a, b in board_map[board])
+        # for triple in triples:
+            # experiments.add(frozenset(triples - {triple}))
+    # for round in BOARD_CONFIGURATION:
+        # for location in BOARD_CONFIGURATION[round]:
+            # for board in BOARD_CONFIGURATION[round][location]:
+                # experiments.add(frozenset(((round, location, board),)))
+                # board_map[board].append((round, location))
+    # for board in board_map:
+        # triples = set((a, b, board) for a, b in board_map[board])
+        # for triple in triples:
+            # experiments.add(frozenset(triples - {triple}))
     fs = s3fs.S3FileSystem(anon=False)
     out_dir = Path(BUCKET_NAME) / args.experiment
+    print(out_dir)
     def process(x):
         a, b, c = x.split("_")
-        return (int(a), b, int(c))
+        return (int(a), REVERSE_NAME_MAP[b], int(c))
     try:
         existing = set(frozenset(map(process, frozenset(x.split('/')[-1].split("-")))) for x in fs.ls(out_dir))
     except:
@@ -160,14 +219,18 @@ if __name__ == "__main__":
         pool = ThreadPool(10)
         pool.map(run_remote, list(experiments))
     if args.benchmark:
+        existing = [x.split('/')[-1] for x in fs.ls(out_dir)]
         commands = []
+        def process(x):
+            a, b, c = x
+            return (str(a), NAME_MAP[b], str(c))
         for experiment in experiments:
             experiment = list(experiment)
             if len(experiment) == 2:
-                es = ["-".join("_".join(map(str, x)) for x in e) for e in [experiment, reversed(experiment)]]
+                es = ["-".join("_".join(process(x)) for x in e) for e in [experiment, reversed(experiment)]]
             else:
-                es = ["-".join("_".join(map(str, x)) for x in experiment)]
-            for e in es:
+                es = ["-".join("_".join(process(x)) for x in experiment)]
+            for e in existing:
                 commands.append("python scripts/generate_split.py %s %s --level1" % (args.experiment, e))
         import ipdb; ipdb.set_trace()
         pool = ThreadPool(10)
