@@ -58,10 +58,11 @@ if __name__ == "__main__":
                 model_df = pd.concat([model_df, local_df])
         if result == 'test' and args.split is not None:
             local_df_ = pd.read_csv(args.split)
-            local_df_ = local_df_[local_df_["Calibration"] == 'Split-NN']
+            # import ipdb; ipdb.set_trace()
+            # local_df_ = local_df_[local_df_["Calibration"] == 'Split-NN']
             local_df = local_df_[METRICS]
             local_df['Model'] = "Split-NN"
-            local_df['Level'] = local_df_['Benchmark']
+            local_df['Level'] = "Level 1" #local_df_['Benchmark']
             local_df['Evaluation'] = result_name
             model_df = pd.concat([model_df, local_df])
     if args.split is not None:
@@ -76,7 +77,7 @@ if __name__ == "__main__":
                 # fig, ax = plt.subplots(1, len(MODELS), sharey=True, sharex=True)
                 fig, ax = plt.subplots()
                 for i, (model, name) in enumerate(MODELS.items()):
-                    if model in args.ignore_models:
+                    if args.ignore_models is not None and model in args.ignore_models:
                         print("Ignoring:", model)
                         continue
                     if model == 'Split-NN' and result != 'test':
@@ -84,7 +85,6 @@ if __name__ == "__main__":
                     data = model_df[(model_df['Level'] == ("Level %u" % level)) & (model_df['Model'] == name) & (model_df['Evaluation'] == result_name)]
                     # if model == 'Split-NN' and level == 1 and result == 'test':
                         # import ipdb; ipdb.set_trace()
-                    print(markers[i], name)
                     ax.scatter(data["%s crMSE" % gas], data["%s MBE" % gas], label=name, alpha=0.6, s=10, marker=markers[i], color=current_palette[i])
                     # ax2[i].scatter(data["%s crMSE" % gas] / data[("epa-%s" % gas).lower()].mean(), data["%s MBE" % gas] / data[("epa-%s" % gas).lower()].mean())
                 # ax.set_title(name)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
             x_axis = data_f["%s crMSE" % gas].min(), data_f["%s crMSE" % gas].max()
             y_axis = data_f["%s MBE" % gas].min(), data_f["%s MBE" % gas].max()
             for i, (model, name) in enumerate(MODELS.items()):
-                if model in args.ignore_models:
+                if args.ignore_models is not None and model in args.ignore_models:
                     print("Ignoring:", model)
                 if model == 'Split-NN' and result != 'test':
                     continue

@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 
 NAMES = [
     ("results/filtered-data/nn-4/level1", "NN-4"),
-    ("results/splits-500-10relu-seasonal-size3/level1", "Split-NN (1)"),
-    ("results/splits-500-10relu-seasonal-size6/level1", "Split-NN (2)"),
-    ("results/splits-500-10relu-seasonal-size9/level1", "Split-NN (3)"),
-    ("results/filtered-data/subu/level1", "RF (1)"),
+    ("results/splits-500-10relu-location-size3/level1", "Split-NN (3)"),
+    ("results/splits-500-10relu-location-size6/level1", "Split-NN (6)"),
+    ("results/splits-500-10relu-location-size9/level1", "Split-NN (9)"),
+    ("results/filtered-data/subu/level1", "RF"),
 ]
 
 
