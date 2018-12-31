@@ -346,8 +346,6 @@ When we examine these same plots for the random forest model in the bottom half 
 
 \todo{WGG: above, cite Joanna's paper if we corroborate.}
 
-\todo{WGG: Sharad, could we normalize the MLR plots to 60 or 80 and the RF plots to 40/50 (what happens if we normalize them all to 50?)?  There are so few values above that I don't think it's useful, and the added detail at the lower values would be welcome.  Similarly, could we normalize the RF plots to whatever the max is for the middle "El Cajon" plot (e)?  Finally, we need to normalize the "color ordering" in (d) and (e).  For example, in (a) it's Shafter, El Cajon, Donovan, whereas in (d) it's El Cajon, Shafter, Donovan.  A smaller issue is that there is a substantial amount of whitespace around each figure.}
-
 %\begin{figure}[H]
 %\centering
 %\begin{subfigure}{0.45\textwidth}
@@ -426,7 +424,7 @@ To help reveal the value of calibrating multiple boards at once, we perform thre
 \caption{Level 2 (O3)}
 \end{subfigure}
 \caption{}
-\label{fig:target-plots-levels-split}
+\label{fig:split-results}
 \end{figure}
 
 We also evaluated the calibration of a new sensor package using the split-NN approach. As described in Section~\ref{sec:split-nn}, rather than retraining a full calibration model when a new, uncalibrated sensor needs to be deployed, we can colocate it with an already-calibrated low-cost sensor. We then train a new sensor model for the new board, regressing to match the sensor model outputs from the colocated boards. Since the sensor model outputs intermediate values that are then fed into a global calibration model, we have effectively calibrated a new board just through the sensor model. Using this approach we find \todo{WGG: how?} that on average, \todo{WGG: is this additional error over doing it from scratch?  Sounds high.  Our new test will help here.} we incur 3.79 NO2 MAE and 6.07 O3 MAE.
