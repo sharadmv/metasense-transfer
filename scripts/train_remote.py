@@ -1,3 +1,4 @@
+import itertools
 import s3fs
 import time
 import os
@@ -80,6 +81,7 @@ def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
     experiment_name = "-".join("_".join((str(x[0]), NAME_MAP[x[1]], str(x[2]))) for x in experiment)
     print("Experiment name:", experiment_name)
     instance_type = 'm5.large'
+    # ami = 'ami-005538161aa300c7b'
     ami = 'ami-094b2cdcc1b66470e'
     spot_price = '0.2'
     round = ",".join([str(x[0]) for x in experiment])
@@ -152,22 +154,87 @@ def get_location_experiment():
         yield from [frozenset((a, b, c)) for a in location_triples['shafter'] for b in location_triples['elcajon'] for c in location_triples['donovan']]
 
 def get_seasonal_experiment():
-    round_triples = {}
+    # round_triples = {}
+    # for round in BOARD_CONFIGURATION:
+        # locations = BOARD_CONFIGURATION[round].keys()
+        # for location in locations:
+            # for board in BOARD_CONFIGURATION[round][location]:
+                # if round not in round_triples:
+                    # round_triples[round] = set()
+                # round_triples[round].add((round, location, board))
+    # yield from [
+        # frozenset((a, b, c))
+        # for a in round_triples[2]
+        # for b in round_triples[3]
+        # for c in round_triples[4]
+        # if a[1] == b[1] == c[1]
+    # ]
+    triples = set()
     for round in BOARD_CONFIGURATION:
-        locations = BOARD_CONFIGURATION[round].keys()
-        for location in locations:
+        for location in BOARD_CONFIGURATION[round]:
             for board in BOARD_CONFIGURATION[round][location]:
-                if round not in round_triples:
-                    round_triples[round] = set()
-                round_triples[round].add((round, location, board))
+                triples.add((round, location, board))
+    combos = list(itertools.combinations(triples, 3))
     yield from [
-        frozenset((a, b, c))
-        for a in round_triples[2]
-        for b in round_triples[3]
-        for c in round_triples[4]
-        if a[1] == b[1] == c[1]
+        frozenset((a, b, c)) for a, b, c in combos
+        if ((a[0] != b[0] and a[0] != c[0] and b[0] != c[0])
+            and (a[1] == b[1] and a[1] == c[1] and b[1] == c[1])
+            and (a[2] != b[2] and a[2] != c[2] and b[2] != c[2]))
     ]
 
+def get_locationseasonal_experiment():
+    triples = set()
+    for round in BOARD_CONFIGURATION:
+        for location in BOARD_CONFIGURATION[round]:
+            for board in BOARD_CONFIGURATION[round][location]:
+                triples.add((round, location, board))
+    combos = list(itertools.combinations(triples, 3))
+    yield from [
+        frozenset((a, b, c)) for a, b, c in combos
+        if ((a[0] != b[0] and a[0] != c[0] and b[0] != c[0])
+            and (a[1] != b[1] and a[1] != c[1] and b[1] != c[1])
+            and (a[2] != b[2] and a[2] != c[2] and b[2] != c[2]))
+    ]
+
+def get_seasonal_size(n):
+    triples = set()
+    for round in BOARD_CONFIGURATION:
+        for location in BOARD_CONFIGURATION[round]:
+            for board in BOARD_CONFIGURATION[round][location]:
+                triples.add((round, location, board))
+    combos = itertools.combinations(triples, n)
+    for combo in combos:
+        rounds = [c[0] for c in combo]
+        locations = [c[1] for c in combo]
+        round_set = set(rounds)
+        if not all([l == locations[0] for l in locations]):
+            continue
+        if not len(round_set) == 3:
+            continue
+        num_rounds = int(n / 3)
+        if [rounds.count(l) for l in round_set] != [num_rounds] * 3:
+            continue
+        yield frozenset(combo)
+
+def get_location_size(n):
+    triples = set()
+    for round in BOARD_CONFIGURATION:
+        for location in BOARD_CONFIGURATION[round]:
+            for board in BOARD_CONFIGURATION[round][location]:
+                triples.add((round, location, board))
+    combos = itertools.combinations(triples, n)
+    for combo in combos:
+        rounds = [c[0] for c in combo]
+        locations = [c[1] for c in combo]
+        location_set = set(locations)
+        if not all([r == rounds[0] for r in rounds]):
+            continue
+        if not len(location_set) == 3:
+            continue
+        num_locations = int(n / 3)
+        if [locations.count(l) for l in location_set] != [num_locations] * 3:
+            continue
+        yield frozenset(combo)
 
 if __name__ == "__main__":
     args = parse_args()
@@ -180,7 +247,9 @@ if __name__ == "__main__":
                 all_experiments.add((round, location, board))
     all_experiments = frozenset(all_experiments)
     # for experiment in get_location_experiment():
-    for experiment in get_seasonal_experiment():
+    # for experiment in get_locationseasonal_experiment():
+    for experiment in get_seasonal_size(9):
+        print(experiment)
         experiments.add(all_experiments - experiment)
     # for round in BOARD_CONFIGURATION:
         # for location in BOARD_CONFIGURATION[round]:
@@ -212,7 +281,7 @@ if __name__ == "__main__":
         existing = set()
     print("Number of experiments:", len(experiments))
     print("Number of existing:", len(existing))
-    print(experiments)
+    # print(experiments)
     if args.run:
         experiments -= existing
         print(experiments)

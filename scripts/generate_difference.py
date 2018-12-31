@@ -59,7 +59,7 @@ if __name__ == "__main__":
     for result, result_name in EVALUATIONS.items():
         for metric in METRICS:
             fig, ax = plt.subplots()
-            sns.boxplot(data=model_df[model_df['Evaluation'] == result_name], x="Level", y=metric, hue='Model', whis=2)
+            sns.boxplot(data=model_df[model_df['Evaluation'] == result_name], x="Level", y=metric, hue='Model', whis=2, showfliers=False)
             fig.suptitle(result_name)
             ax.set_xlabel("Benchmark")
             fig.savefig(str(out / ('%s_%s.png' % (metric, result))), bbox_inches='tight')
