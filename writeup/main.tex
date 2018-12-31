@@ -402,23 +402,6 @@ To help reveal the value of calibrating multiple boards at once, we perform thre
 
 
 \begin{figure}[H]
-\begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/locations/NO2" "MAE.png}
-\caption{NO2 MAE}
-\end{subfigure}
-\begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/locations/O3" "MAE.png}
-\caption{O3 MAE}
-\end{subfigure}
-\begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/locations/NO2" "MAE-diff.png}
-\caption{NO2 MAE difference}
-\end{subfigure}
-\begin{subfigure}{0.49\textwidth}
-\includegraphics[width=\textwidth]{\splitdir/locations/O3" "MAE-diff.png}
-\caption{O3 MAE difference}
-\end{subfigure}
-\caption{Comparison of errors of split-NN and RFs.}
 \label{fig:split-comparison}
 \end{figure}
 
@@ -1257,33 +1240,6 @@ the difference in performance between split-NN and the four models. In these plo
 \todo{WGG: should we continue reporting Split NN as a comparison, or just include the raw results like the others?  Tables are very long, too long for the page, BTW.}
 \section{Split Neural Network results}
 
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\splitdir/linear/results.tex}
-\caption{Comparison of split-NN vs Linear}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\splitdir/nn-2/results.tex}
-\caption{Comparison of split-NN vs NN[2]}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\splitdir/nn-4/results.tex}
-\caption{Comparison of split-NN vs NN[4]}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\splitdir/subu/results.tex}
-\caption{Comparison of split-NN vs random forest}
-\end{table}
 
 %\end{landscape}
 \end{document}
