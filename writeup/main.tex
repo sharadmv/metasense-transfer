@@ -552,7 +552,7 @@ O3 and NO2.
 
 \section{Environment and Pollutant Distributions}\label{Distributions}
 
-\todo{Have these been updated to reflect the data we are using? (i.e., from R2, R2, and R4}
+%\todo{Have these been updated to reflect the data we are using? (i.e., from R2, R2, and R4}
 %\todo{Recommend for the Distribution section just keep plots B5, B6, B8, B10 - those would be sufficient, keeping all might be too much (WGG: DONE)}
 
 
@@ -1047,40 +1047,79 @@ the difference in performance between split-NN and the four models. In these plo
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/linear/level1/train.tex}
-\caption{Level 1 train results for linear regression}
+\input{\baselinedir/linear/level1/train-no2.tex}
+\caption{Level 1 train results for linear regression (NO2)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/linear/level1/test.tex}
-\caption{Level 1 test results for linear regression}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level2/train.tex}
-\caption{Level 2 train results for linear regression}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level2/test.tex}
-\caption{Level 2 test results for linear regression}
+\input{\baselinedir/linear/level1/test-no2.tex}
+\caption{Level 1 test results for linear regression (NO2)}
 \end{table}
 
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/linear/level3/train.tex}
-\caption{Level 3 train results for linear regression}
+\input{\baselinedir/linear/level1/train-o3.tex}
+\caption{Level 1 train results for linear regression (O3)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/linear/level3/test.tex}
-\caption{Level 3 test results for linear regression}
+\input{\baselinedir/linear/level1/test-o3.tex}
+\caption{Level 1 test results for linear regression (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level2/train-no2.tex}
+\caption{Level 2 train results for linear regression (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level2/test-no2.tex}
+\caption{Level 2 test results for linear regression (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level2/train-o3.tex}
+\caption{Level 2 train results for linear regression (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level2/test-o3.tex}
+\caption{Level 2 test results for linear regression (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level3/train-no2.tex}
+\caption{Level 3 train results for linear regression (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level3/test-no2.tex}
+\caption{Level 3 test results for linear regression (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level3/train-o3.tex}
+\caption{Level 3 train results for linear regression (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/linear/level3/test-o3.tex}
+\caption{Level 3 test results for linear regression (O3)}
 \end{table}
 
 \subsection{Benchmarks for NN[2]}
@@ -1089,53 +1128,105 @@ the difference in performance between split-NN and the four models. In these plo
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-2/level0/train.tex}
-\caption{Level 0 train results for NN[2]}
+\input{\baselinedir/nn-2/level0/train-no2.tex}
+\caption{Level 0 train results for NN-2 (NO2)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-2/level0/test.tex}
-\caption{Level 0 test results for NN[2]}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level1/train.tex}
-\caption{Level 1 train results for NN[2]}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level1/test.tex}
-\caption{Level 1 test results for NN[2]}
+\input{\baselinedir/nn-2/level0/test-no2.tex}
+\caption{Level 0 test results for NN-2 (NO2)}
 \end{table}
 
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-2/level2/train.tex}
-\caption{Level 2 train results for NN[2]}
+\input{\baselinedir/nn-2/level0/train-o3.tex}
+\caption{Level 0 train results for NN-2 (O3)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-2/level2/test.tex}
-\caption{Level 2 test results for NN[2]}
+\input{\baselinedir/nn-2/level0/test-o3.tex}
+\caption{Level 0 test results for NN-2 (O3)}
 \end{table}
 
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-2/level3/train.tex}
-\caption{Level 3 train results for NN[2]}
+\input{\baselinedir/nn-2/level1/train-no2.tex}
+\caption{Level 1 train results for NN-2 (NO2)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-2/level3/test.tex}
-\caption{Level 3 test results for NN[2]}
+\input{\baselinedir/nn-2/level1/test-no2.tex}
+\caption{Level 1 test results for NN-2 (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level1/train-o3.tex}
+\caption{Level 1 train results for NN-2 (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level1/test-o3.tex}
+\caption{Level 1 test results for NN-2 (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level2/train-no2.tex}
+\caption{Level 2 train results for NN-2 (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level2/test-no2.tex}
+\caption{Level 2 test results for NN-2 (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level2/train-o3.tex}
+\caption{Level 2 train results for NN-2 (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level2/test-o3.tex}
+\caption{Level 2 test results for NN-2 (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level3/train-no2.tex}
+\caption{Level 3 train results for NN-2 (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level3/test-no2.tex}
+\caption{Level 3 test results for NN-2 (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level3/train-o3.tex}
+\caption{Level 3 train results for NN-2 (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-2/level3/test-o3.tex}
+\caption{Level 3 test results for NN-2 (O3)}
 \end{table}
 
 \subsection{Benchmarks for NN[4]}
@@ -1144,53 +1235,105 @@ the difference in performance between split-NN and the four models. In these plo
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-4/level0/train.tex}
-\caption{Level 0 train results for NN[4]}
+\input{\baselinedir/nn-4/level0/train-no2.tex}
+\caption{Level 0 train results for NN-4 (NO2)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-4/level0/test.tex}
-\caption{Level 0 test results for NN[4]}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level1/train.tex}
-\caption{Level 1 train results for NN[4]}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level1/test.tex}
-\caption{Level 1 test results for NN[4]}
+\input{\baselinedir/nn-4/level0/test-no2.tex}
+\caption{Level 0 test results for NN-4 (NO2)}
 \end{table}
 
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-4/level2/train.tex}
-\caption{Level 2 train results for NN[4]}
+\input{\baselinedir/nn-4/level0/train-o3.tex}
+\caption{Level 0 train results for NN-4 (O3)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-4/level2/test.tex}
-\caption{Level 2 test results for NN[4]}
+\input{\baselinedir/nn-4/level0/test-o3.tex}
+\caption{Level 0 test results for NN-4 (O3)}
 \end{table}
 
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-4/level3/train.tex}
-\caption{Level 3 train results for NN[4]}
+\input{\baselinedir/nn-4/level1/train-no2.tex}
+\caption{Level 1 train results for NN-4 (NO2)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/nn-4/level3/test.tex}
-\caption{Level 3 test results for NN[4]}
+\input{\baselinedir/nn-4/level1/test-no2.tex}
+\caption{Level 1 test results for NN-4 (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level1/train-o3.tex}
+\caption{Level 1 train results for NN-4 (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level1/test-o3.tex}
+\caption{Level 1 test results for NN-4 (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level2/train-no2.tex}
+\caption{Level 2 train results for NN-4 (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level2/test-no2.tex}
+\caption{Level 2 test results for NN-4 (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level2/train-o3.tex}
+\caption{Level 2 train results for NN-4 (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level2/test-o3.tex}
+\caption{Level 2 test results for NN-4 (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level3/train-no2.tex}
+\caption{Level 3 train results for NN-4 (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level3/test-no2.tex}
+\caption{Level 3 test results for NN-4 (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level3/train-o3.tex}
+\caption{Level 3 train results for NN-4 (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/nn-4/level3/test-o3.tex}
+\caption{Level 3 test results for NN-4 (O3)}
 \end{table}
 
 \subsection{Benchmarks for Random Forest}
@@ -1199,53 +1342,105 @@ the difference in performance between split-NN and the four models. In these plo
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/subu/level0/train.tex}
-\caption{Level 0 train results for random forest}
+\input{\baselinedir/subu/level0/train-no2.tex}
+\caption{Level 0 train results for random forest (NO2)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/subu/level0/test.tex}
-\caption{Level 0 test results for random forest}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level1/train.tex}
-\caption{Level 1 train results for random forest}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level1/test.tex}
-\caption{Level 1 test results for random forest}
+\input{\baselinedir/subu/level0/test-no2.tex}
+\caption{Level 0 test results for random forest (NO2)}
 \end{table}
 
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/subu/level2/train.tex}
-\caption{Level 2 train results for NN[4]}
+\input{\baselinedir/subu/level0/train-o3.tex}
+\caption{Level 0 train results for random forest (O3)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/subu/level2/test.tex}
-\caption{Level 2 test results for random forest}
+\input{\baselinedir/subu/level0/test-o3.tex}
+\caption{Level 0 test results for random forest (O3)}
 \end{table}
 
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/subu/level3/train.tex}
-\caption{Level 3 train results for random forest}
+\input{\baselinedir/subu/level1/train-no2.tex}
+\caption{Level 1 train results for random forest (NO2)}
 \end{table}
 \begin{table}[H]
 \centering
 \scriptsize
-\input{\baselinedir/subu/level3/test.tex}
-\caption{Level 3 test results for random forest}
+\input{\baselinedir/subu/level1/test-no2.tex}
+\caption{Level 1 test results for random forest (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level1/train-o3.tex}
+\caption{Level 1 train results for random forest (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level1/test-o3.tex}
+\caption{Level 1 test results for random forest (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level2/train-no2.tex}
+\caption{Level 2 train results for random forest (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level2/test-no2.tex}
+\caption{Level 2 test results for random forest (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level2/train-o3.tex}
+\caption{Level 2 train results for random forest (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level2/test-o3.tex}
+\caption{Level 2 test results for random forest (O3)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level3/train-no2.tex}
+\caption{Level 3 train results for random forest (NO2)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level3/test-no2.tex}
+\caption{Level 3 test results for random forest (NO2)}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level3/train-o3.tex}
+\caption{Level 3 train results for random forest (O3)}
+\end{table}
+\begin{table}[H]
+\centering
+\scriptsize
+\input{\baselinedir/subu/level3/test-o3.tex}
+\caption{Level 3 test results for random forest (O3)}
 \end{table}
 
 %\begin{landscape}
