@@ -228,10 +228,10 @@ The split-NN model enables calibrating a new sensor package by colocating to mat
 \section{Results and Discussion}
 
 \subsection{Robustness of Different Calibration Techniques Across New Locations}
-We first evaluated a set of four baseline models described in Section~\ref{sec:calibration-methods}: multiple linear regression, two-layer neural network (NN-2), four-layer neural network (NN-4), and random forest. With each of these four models, we performed a suite of identical calibration benchmarks that measure the robustness of models to out-of-distribution data. We first initially split all data sets uniformly at random into training and testing subsets, reserving 20\% of each board's data for testing.  In each benchmark, we progressively widened the training distribution by combining training data from more locations (using subsampling to maintain the training set size), while keeping the testing set data set from one location.  We have four ``levels'' of such benchmarks:
+We first evaluated a set of four baseline models described in Section~\ref{sec:calibration-methods}: multiple linear regression, two-layer neural network (NN-2), four-layer neural network (NN-4), and random forest (RF). With each of these four models, we performed a suite of identical calibration benchmarks that measure the robustness of models to out-of-distribution data. We first initially split all data sets uniformly at random into training and testing subsets, reserving 20\% of each board's data for testing.  In each benchmark, we progressively widened the training distribution by combining training data from more locations (using subsampling to maintain the training set size), while keeping the testing set data set from one location.  We have four ``levels'' of such benchmarks:
 \begin{itemize}
-    \item \textbf{Level 0:} Train a model on one location and test on the same location.  Several studies, discussed in Section \ref{Introduction}, have previously assessed this configuration \cite{Zimmerman2018,Spinelle2015,SPINELLE2017706,Cross2017}.
-    \item \textbf{Level 1:} Train a model on one location and test on another location.  Some recent studies, also discussed in Section \ref{Introduction}, have previously studied this configuration \cite{Hagan2018, Casey2018testing, Malings2018development,Bigi2018performance}.
+    \item \textbf{Level 0:} Train a model on one location and test on the same location.  Several studies, discussed in Section \ref{Introduction}, have previously assessed this configuration \citep{Zimmerman2018,Spinelle2015,SPINELLE2017706,Cross2017}.
+    \item \textbf{Level 1:} Train a model on one location and test on another location.  Some recent studies, also discussed in Section \ref{Introduction}, have previously studied this configuration \citep{Hagan2018, Casey2018testing, Malings2018development,Bigi2018performance}.
     \item \textbf{Level 2:} Train a model on two locations and test on a third location.
     \item \textbf{Level 3:} Train a model on three locations and test on one of the three.
 \end{itemize}
@@ -334,8 +334,8 @@ To better understand how model performance degrades, we produced target plots, w
 
 
 In general, however, we observe that model performance degrades non-trivially
-when moved to different locations. This decrease in performance could result in overconfidence in a sensor's readings, potentially affecting downstream decisions. We briefly analyze the properties of our data that could result in overfitting.
-We first investigate how data distributions across sites and times differ. Over each location and round, pollutant values can be highly variable. This is reflected, for example, in \autoref{fig:no2-rounds} where Shafter has higher values of NO2 in Round 1 and 2 but lower in Round 3. Furthermore, in \autoref{fig:o3-rounds}, the distribution of O3 changes remarkably across round and location.
+when moved to different locations. This decrease in performance could result in overconfidence in a sensor's readings, potentially affecting downstream decisions. We briefly analyze the properties of our data that could result in overfitting
+by first investigating how data distributions across sites and times differ. Over each location and round, pollutant values can be highly variable. This is reflected, for example, in \autoref{fig:no2-rounds} where Shafter has higher values of NO2 in Round 1 and 2 but lower in Round 3. Furthermore, in \autoref{fig:o3-rounds}, the distribution of O3 changes remarkably across round and location.
 Similarly, temperature and humidity change significantly across location and round, which can be seen in \autoref{fig:temperature-rounds} and \autoref{fig:humidity-rounds}.
 
 %\todo{(in the above, perhaps add something like: the model is overfitting to ambient environmental conditions and not the sensor reading. Many pollutants change with the diurnal cycle of the earth (eg. NO2 turning into O3 only when there is UV light, so NO2 is bigger at night, which is typically cooler and more/less humidity).)}.
@@ -394,14 +394,10 @@ When we examine these same plots for the random forest model in the bottom half 
 
 
 \subsection{Benefits of Sharing Data Across Sensor Packages}
-In this section, we evaluate the split-NN model architecture's utility for improving the transferability of a calibration model.  The novelty of the split-NN model for calibrating a board's model is its ability include (normalized) data from other boards.  Given that the resources for calibration are limited, the research questions for split-NN revolve around how boards could be best distributed to available field sites, and at what times.  For a standard modeling technique like random forest, a board has to be placed at three sites for three rounds to experience the wide training distribution that achieves the exceptional transferability observed in the Level 3 benchmarks.  However, with a split-NN model, three boards could be deployed for just one round, each at one site.  Then the data from their boards could be normalized and shared to (hopefully) produce models of similar quality, but in one-third the time.  We expect to get results comparable to Level 3, but in one third the time.  Another possible deployment strategy is that multiple boards are deployed at the same site, but at different times, resulting in the capture of seasonal variations that could improve transferability.  This suggests three benchmarks, each employing three boards and each using the same amount of net deployment time and data:
+In this section, we evaluate the split-NN model architecture's utility for improving the transferability of a calibration model.  The novelty of the split-NN model for calibrating a board's model is its ability include (normalized) data from other boards.  Given that the resources for calibration are limited, the research questions for split-NN revolve around how boards could be best distributed to available field sites.  For a standard modeling technique like random forest, a board has to be placed at three sites for three rounds to experience the wide training distribution that achieves the exceptional transferability observed in the Level 3 benchmarks.  However, with the split-NN model, multiple boards can be deployed for just one round, divided equally across the sites.  Then the data from their boards can be normalized and shared to produce models that we to be of similar quality to a Level 3 benchmark, but in one-third the time, in a single round.
 
-\begin{itemize}
-    \item \textbf{Level 1: Location:} Train a board's model on three locations for one round.  The model uses the board's data at a given location, plus data from two other boards deployed at the same time to two different locations.  Test on data that excludes the board's data, that is, test on locations other than the board's location.
-    \item \textbf{Level 1 Seasonal:} Train a board's model on one location for three rounds.  The model uses the board's data as well as data from a different board from each of the other two rounds at that same location.  Test on data that excludes the board's data, that is, test on data from rounds other than the board's round.  Although this might not be a preferred strategy on its own, it is useful in teasing out the effects of rotation for the next benchmark.
-    \item \textbf{Level 1 Location-Seasonal:} Train a board's model on three locations for three rounds, drawing on data from all three boards, but deployed for just one-third the time using the same time slice.  Test on data that excludes the board's data.
+To help reveal the value of calibrating multiple boards at once, we perform three one-round benchmarks: 1 board at each of the three sites, 2 boards at each of the three sites, and 3 boards at each of the three sites.  In each of these conditions, a board is tested on the other locations, not its own.  In this respect, these are all Level 1 benchmarks.  We compare the resulting models to be both random forest Level 1 and Level 3 benchmarks.  We compare against the Level 1 benchmarks because the split-NN is trained on a single round of data and tested on remote sites.  We expect the split-NN to far outperform Level 1 random forest and be at least competitive with Level 3 random forest (which requires three rounds).  We also expect that a greater multiplicity of boards will produce slightly better models, but with diminishing returns.
 
-\end{itemize}
 \todo{WGG: fix when have new data.} Figure~\ref{fig:split-comparison}a-b shows that the split-NN model on average has lower MAE in both the Level 1 and Level 2 benchmarks when compared to the random forest model. We examine this further by taking the difference in errors between the same permutations in each benchmark. We find on average, that our models have $0.374$ ppb less MAE for NO2 prediction and $0.436$ ppb less MAE for O3 prediction, as shown in Figure~\ref{fig:split-comparison}c-d.  We also find these results consistent across the other metrics, a promising indication that pooling data across sensor packages offers improvements, even if marginal.
 
 
@@ -454,10 +450,10 @@ We also evaluated the calibration of a new sensor package using the split-NN app
 
 
 
-\begin{figure}
-    \includegraphics[width=0.3\textwidth]{writeup/img/levels-retrain}
-    \caption{Calibrating a new board $N + 1$}
-\end{figure}
+%\begin{figure}
+%    \includegraphics[width=0.3\textwidth]{writeup/img/levels-retrain}
+%    \caption{Calibrating a new board $N + 1$}
+%\end{figure}
 
 \iffalse
 
@@ -642,7 +638,7 @@ location}
 \caption{Round 1}
 \end{subfigure}
 \begin{subfigure}{0.32\textwidth}
-\includegraphics[width=\textwidth]{results/distributions/round2_temperature.png}
+.\includegraphics[width=\textwidth]{results/distributions/round2_temperature.png}
 \caption{Round 2}
 \end{subfigure}
 \begin{subfigure}{0.32\textwidth}
