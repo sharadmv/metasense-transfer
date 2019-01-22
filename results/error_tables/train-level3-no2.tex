@@ -1,0 +1,13 @@
+\begin{table}[h]
+\begin{tabular}{llrrrrrrr}
+\toprule
+ Train Sites & Method &   MAE &  CvMAE &       MBE &     MSE &   R\textasciicircum2 &  crMSE &   rMSE \\
+\midrule
+\{donovan, elcajon, shafter\} & MLR & 5.505 & 0.478 & -0.585 & 66.057 & 0.257 & 7.474 & 7.805\\
+\{donovan, elcajon, shafter\} & NN-2 & 3.205 & 0.276 & 0.024 & 26.908 & 0.711 & 4.929 & 4.967\\
+\{donovan, elcajon, shafter\} & NN-4 & 1.916 & 0.164 & 0.006 & 10.234 & 0.883 & 3.083 & 3.095\\
+\{donovan, elcajon, shafter\} & RF & 0.971 & 0.090 & -0.102 & 3.344 & 0.961 & 1.628 & 1.648\\
+\bottomrule
+\end{tabular}
+\caption{Level 3 train results for NO2 (train and test on the same data set).}
+\end{table}
