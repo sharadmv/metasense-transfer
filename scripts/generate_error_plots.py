@@ -64,13 +64,13 @@ if __name__ == "__main__":
                     filtered = df[(df['train_location'] == train_location) & (df['location'] == test_location)]
                     error = "%s MAE" % gas
                     # filtered = filtered[np.abs(filtered[metric]-filtered[metric].mean()) <= (2*filtered[metric].std())]
-                    filtered = filtered[np.abs(filtered[error]-filtered[error].mean()) <= (3*filtered[error].std())]
+                    # filtered = filtered[np.abs(filtered[error]-filtered[error].mean()) <= (3*filtered[error].std())]
                     axes.append(mpatches.Patch(color=colors[test_location], label=MAP[test_location]))
                     ax.scatter_density(filtered[metric], filtered[error], color=colors[test_location], label=MAP[test_location], dpi=dwf)
                     # sns.kdeplot(filtered[metric], filtered["%s MAE" % gas], ax=ax[i + 1])
                 filtered = df[(df['train_location'] == train_location) & (df['location'] == train_location)]
                 error = "%s MAE" % gas
-                filtered = filtered[np.abs(filtered[error]-filtered[error].mean()) <= (3*filtered[error].std())]
+                # filtered = filtered[np.abs(filtered[error]-filtered[error].mean()) <= (3*filtered[error].std())]
                 ax.scatter_density(filtered[metric], filtered[error], color=colors[train_location], label=MAP[train_location], dpi=dwf)
                 axes.append(mpatches.Patch(color=colors[train_location], label=MAP[train_location]))
                 ax.legend(handles=axes)

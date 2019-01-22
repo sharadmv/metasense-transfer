@@ -1,3 +1,4 @@
+import tqdm
 import itertools
 import s3fs
 import time
@@ -71,7 +72,7 @@ def wait_on_ssh(instance_ip):
             s.connect((instance_ip, 22))
             connected = True
         except Exception:
-            print('Failed to connect...')
+            print('Failed to connect to %s...' % instance_ip)
             time.sleep(2)
         finally:
             s.close()
@@ -82,8 +83,9 @@ def run_remote(experiment, key_path=os.path.expanduser('~/.aws/metasense.pem')):
     print("Experiment name:", experiment_name)
     instance_type = 'm5.large'
     # ami = 'ami-005538161aa300c7b'
-    ami = 'ami-094b2cdcc1b66470e'
-    spot_price = '0.2'
+    # ami = 'ami-094b2cdcc1b66470e'
+    ami = 'ami-09fc54c1e28d2eae2'
+    spot_price = '0.5'
     round = ",".join([str(x[0]) for x in experiment])
     location = ",".join([str(x[1]) for x in experiment])
     board = ",".join([str(x[2]) for x in experiment])
@@ -216,23 +218,59 @@ def get_seasonal_size(n):
             continue
         yield frozenset(combo)
 
-def get_location_size(n):
+def get_location_size(n, level=1):
     triples = set()
     for round in BOARD_CONFIGURATION:
         for location in BOARD_CONFIGURATION[round]:
             for board in BOARD_CONFIGURATION[round][location]:
                 triples.add((round, location, board))
-    combos = itertools.combinations(triples, n)
-    for combo in combos:
+    combos = itertools.combinations(triples, n * level)
+    for combo in tqdm.tqdm(combos):
         rounds = [c[0] for c in combo]
+        round_set = set(rounds)
         locations = [c[1] for c in combo]
         location_set = set(locations)
-        if not all([r == rounds[0] for r in rounds]):
+        boards = [c[2] for c in combo]
+        board_set = set([c[2] for c in combo])
+        board_counts = [boards.count(b) for b in board_set]
+        if len(board_set) != n:
+            continue
+        if board_counts != [level] * len(board_set):
             continue
         if not len(location_set) == 3:
             continue
-        num_locations = int(n / 3)
+        if not len(round_set) == level:
+            continue
+        num_locations = int(n * level / 3)
         if [locations.count(l) for l in location_set] != [num_locations] * 3:
+            continue
+        yield frozenset(combo)
+
+def get_seasonal_size(n, level=1):
+    triples = set()
+    for round in BOARD_CONFIGURATION:
+        for location in BOARD_CONFIGURATION[round]:
+            for board in BOARD_CONFIGURATION[round][location]:
+                triples.add((round, location, board))
+    combos = itertools.combinations(triples, n * level)
+    for combo in tqdm.tqdm(combos):
+        rounds = [c[0] for c in combo]
+        round_set = set(rounds)
+        locations = [c[1] for c in combo]
+        location_set = set(locations)
+        boards = [c[2] for c in combo]
+        board_set = set([c[2] for c in combo])
+        board_counts = [boards.count(b) for b in board_set]
+        if len(board_set) != n:
+            continue
+        if board_counts != [level] * len(board_set):
+            continue
+        if not len(location_set) == level:
+            continue
+        if not len(round_set) == 3:
+            continue
+        num_rounds = int(n * level / 3)
+        if [rounds.count(l) for l in round_set] != [num_rounds] * 3:
             continue
         yield frozenset(combo)
 
@@ -248,7 +286,7 @@ if __name__ == "__main__":
     all_experiments = frozenset(all_experiments)
     # for experiment in get_location_experiment():
     # for experiment in get_locationseasonal_experiment():
-    for experiment in get_seasonal_size(9):
+    for experiment in get_location_size(6, level=1):
         print(experiment)
         experiments.add(all_experiments - experiment)
     # for round in BOARD_CONFIGURATION:
@@ -283,7 +321,7 @@ if __name__ == "__main__":
     print("Number of existing:", len(existing))
     # print(experiments)
     if args.run:
-        experiments -= existing
+        # experiments -= existing
         print(experiments)
         pool = ThreadPool(10)
         pool.map(run_remote, list(experiments))
