@@ -1,0 +1,21 @@
+\begin{table}[h]
+\begin{tabular}{llrrrrrrr}
+\toprule
+ Train Site & Method &   MAE &  CvMAE &       MBE &     MSE &   R\textasciicircum2 &  crMSE &   rMSE \\
+\midrule
+elcajon & MLR & 6.038 & 0.245 & 0.040 & 61.471 & 0.822 & 7.744 & 7.744\\
+donovan & MLR & 6.931 & 0.195 & -0.255 & 85.324 & 0.604 & 9.116 & 9.124\\
+shafter & MLR & 5.877 & 0.240 & 0.020 & 63.379 & 0.842 & 7.857 & 7.858\\
+elcajon & NN-2 & 2.919 & 0.115 & -0.133 & 17.626 & 0.950 & 4.113 & 4.118\\
+donovan & NN-2 & 4.516 & 0.126 & -0.488 & 40.687 & 0.802 & 6.193 & 6.253\\
+shafter & NN-2 & 3.568 & 0.145 & 0.020 & 26.052 & 0.937 & 4.999 & 5.011\\
+elcajon & NN-4 & 1.903 & 0.075 & -0.068 & 9.252 & 0.974 & 2.966 & 2.974\\
+donovan & NN-4 & 3.830 & 0.107 & -0.330 & 33.794 & 0.825 & 5.399 & 5.456\\
+shafter & NN-4 & 2.672 & 0.109 & -0.012 & 17.052 & 0.959 & 4.050 & 4.052\\
+elcajon & RF & 1.217 & 0.049 & 0.015 & 3.987 & 0.988 & 1.987 & 1.987\\
+donovan & RF & 2.723 & 0.076 & -0.103 & 19.179 & 0.897 & 3.931 & 3.934\\
+shafter & RF & 1.284 & 0.054 & 0.024 & 4.651 & 0.988 & 2.155 & 2.155\\
+\bottomrule
+\end{tabular}
+\caption{Level 1 train results for O3 (train and test on the same data set).}
+\end{table}

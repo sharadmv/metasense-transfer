@@ -1,0 +1,21 @@
+\begin{table}[h]
+\begin{tabular}{llrrrrrrr}
+\toprule
+ Train Sites & Method &   MAE &  CvMAE &       MBE &     MSE &   R\textasciicircum2 &  crMSE &   rMSE \\
+\midrule
+\{donovan, shafter\} & MLR & 6.396 & 0.249 & -0.034 & 73.967 & 0.785 & 8.493 & 8.494\\
+\{donovan, elcajon\} & MLR & 6.702 & 0.227 & 0.005 & 75.618 & 0.788 & 8.640 & 8.640\\
+\{elcajon, shafter\} & MLR & 6.312 & 0.271 & 0.006 & 71.620 & 0.811 & 8.385 & 8.385\\
+\{donovan, shafter\} & NN-2 & 3.857 & 0.150 & -0.050 & 30.588 & 0.911 & 5.487 & 5.493\\
+\{donovan, elcajon\} & NN-2 & 3.721 & 0.127 & 0.169 & 28.691 & 0.919 & 5.332 & 5.344\\
+\{elcajon, shafter\} & NN-2 & 3.508 & 0.150 & 0.082 & 25.892 & 0.934 & 5.041 & 5.048\\
+\{donovan, shafter\} & NN-4 & 2.447 & 0.096 & 0.046 & 14.251 & 0.959 & 3.763 & 3.765\\
+\{donovan, elcajon\} & NN-4 & 2.355 & 0.080 & 0.116 & 13.973 & 0.961 & 3.716 & 3.721\\
+\{elcajon, shafter\} & NN-4 & 2.210 & 0.094 & 0.104 & 11.863 & 0.969 & 3.408 & 3.412\\
+\{donovan, shafter\} & RF & 1.499 & 0.059 & 0.069 & 6.184 & 0.982 & 2.480 & 2.482\\
+\{donovan, elcajon\} & RF & 1.466 & 0.050 & 0.041 & 5.897 & 0.984 & 2.421 & 2.422\\
+\{elcajon, shafter\} & RF & 1.325 & 0.057 & 0.023 & 4.921 & 0.987 & 2.216 & 2.216\\
+\bottomrule
+\end{tabular}
+\caption{Level 2 train results for O3 (train and test on the same data set).}
+\end{table}

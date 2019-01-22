@@ -1,0 +1,21 @@
+\begin{table}[h]
+\begin{tabular}{lllrrrrrrr}
+\toprule
+ Train Sites & Test Site & Method &   MAE &  CvMAE &       MBE &     MSE &   R\textasciicircum2 &  crMSE &   rMSE \\
+\midrule
+\{donovan, elcajon, shafter\} & elcajon & MLR & 6.859 & 0.278 & -0.920 & 81.607 & 0.764 & 8.628 & 8.865\\
+\{donovan, elcajon, shafter\} & donovan & MLR & 9.870 & 0.276 & 5.047 & 169.555 & 0.141 & 10.236 & 12.282\\
+\{donovan, elcajon, shafter\} & shafter & MLR & 6.727 & 0.275 & 0.400 & 82.576 & 0.796 & 8.831 & 8.891\\
+\{donovan, elcajon, shafter\} & elcajon & NN-2 & 3.732 & 0.148 & -0.018 & 28.075 & 0.920 & 5.208 & 5.224\\
+\{donovan, elcajon, shafter\} & donovan & NN-2 & 5.826 & 0.162 & 1.373 & 65.155 & 0.690 & 7.610 & 7.934\\
+\{donovan, elcajon, shafter\} & shafter & NN-2 & 4.210 & 0.168 & -0.039 & 36.454 & 0.914 & 5.843 & 5.855\\
+\{donovan, elcajon, shafter\} & elcajon & NN-4 & 2.375 & 0.095 & -0.069 & 13.066 & 0.963 & 3.552 & 3.572\\
+\{donovan, elcajon, shafter\} & donovan & NN-4 & 4.541 & 0.126 & 1.132 & 46.867 & 0.757 & 6.182 & 6.402\\
+\{donovan, elcajon, shafter\} & shafter & NN-4 & 2.669 & 0.109 & -0.106 & 15.932 & 0.961 & 3.937 & 3.945\\
+\{donovan, elcajon, shafter\} & elcajon & RF & 1.391 & 0.056 & 0.019 & 5.064 & 0.985 & 2.233 & 2.234\\
+\{donovan, elcajon, shafter\} & donovan & RF & 3.504 & 0.096 & 1.142 & 28.621 & 0.849 & 4.594 & 4.837\\
+\{donovan, elcajon, shafter\} & shafter & RF & 1.853 & 0.072 & 0.105 & 8.391 & 0.980 & 2.775 & 2.783\\
+\bottomrule
+\end{tabular}
+\caption{Level 3 test results for O3.}
+\end{table}
