@@ -101,7 +101,8 @@ def level1(out_dir, experiment_dir):
         for triple in list(get_triples()):
             if triple[2] not in boards or triple in experiment:
                 continue
-            print("Testing on", triple)
+            train_sites = set([e[1] for e in experiment if triple[2] == e[2]])
+            print("Testing on", triple, train_sites)
             train_result = benchmark(model, triple, test=False)
             test_result  = benchmark(model, triple, test=True)
             difference = {}
@@ -109,14 +110,17 @@ def level1(out_dir, experiment_dir):
                 difference[k] = v - test_result[k]
             train_results = train_results.append({
                 'Model': triple,
+                'Train Sites': str(train_sites),
                 **train_result,
             }, ignore_index=True)
             test_results = test_results.append({
                 'Model': triple,
+                'Train Sites': str(train_sites),
                 **test_result,
             }, ignore_index=True)
             differences = differences.append({
                 'Model': triple,
+                'Train Sites': str(train_sites),
                 **difference
             }, ignore_index=True)
     (out_dir / 'level1').mkdir_p()
