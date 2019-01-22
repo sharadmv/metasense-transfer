@@ -417,11 +417,11 @@ The marginal improvement seen in the Level 1 benchmarks has two possible causes.
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{results/split-no2-location-mae}
+\includegraphics[width=\textwidth]{results/split-no2-location-level1-mae}
 \caption{Level 1 NO\textus{2}}
 \end{subfigure}
 \begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{results/split-o3-location-mae}
+\includegraphics[width=\textwidth]{results/split-o3-location-level1-mae}
 \caption{Level 1 O\textus{3}}
 \end{subfigure}
 \begin{subfigure}{0.45\textwidth}
@@ -453,26 +453,25 @@ The marginal improvement seen in the Level 1 benchmarks has two possible causes.
 %\includegraphics[width=\textwidth]{results/split-o3-seasonal-level2-mae}
 %\caption{Level 2 Seasonal Location Split-NN neural network results (O\textus{3})}
 %\end{subfigure}
-
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{results/split-nnfe-no2-location-mae}
+\includegraphics[width=\textwidth]{results/split-no2-location-level1-big-mae}
 \caption{Level 1 NO\textus{2}}
 \end{subfigure}
 \begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{results/split-nnfe-o3-location-mae}
+\includegraphics[width=\textwidth]{results/split-o3-location-level1-big-mae}
 \caption{Level 1 O\textus{3}}
 \end{subfigure}
 \begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{results/split-nnfe-no2-location-level2-mae}
+\includegraphics[width=\textwidth]{results/split-no2-location-level2-big-mae}
 \caption{Level 2 NO\textus{2}}
 \end{subfigure}
 \begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{results/split-nnfe-o3-location-level2-mae}
+\includegraphics[width=\textwidth]{results/split-o3-location-level2-big-mae}
 \caption{Level 2 O\textus{3}}
 \end{subfigure}
-\caption{Results of evaluating the split-NN model with a neural net first stage, compared against the RF model in both Level 1 and Level 2 comparisons. The split-NN model has a lower mean and median error in all evaluations. Boxplots are pictured without outliers for clarity.}
+\caption{Results of evaluating the split-NN model with a linear regression first stage, compared against the RF model in both Level 1 and Level 2 comparisons. The split-NN model has a lower mean and median error in all conditions. Boxplots are pictured without outliers for clarity.}
 \label{fig:split-results-nnfe}
 \end{figure}
 
@@ -1612,8 +1611,35 @@ The following the complete error results for the trained models across the vario
 %\begin{landscape}
 
 %\todo{WGG: should we continue reporting Split NN as a comparison, or just include the raw results like the others?  Tables are very long, too long for the page, BTW.}
-%\section{Split Neural Network results}
+\section{Split Neural Network results}
 
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/splits-500-10relu-seasonal-size3-level1-big/level1/test.tex}
+\caption{Level 1 test results for Split-NN (Size 3, O\textus{3})}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/splits-500-10relu-seasonal-size9-level1-big/level1/test.tex}
+\caption{Level 1 test results for Split-NN (Size 9, O\textus{3})}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/splits-500-10relu-seasonal-size3-level2-big/level1/test.tex}
+\caption{Level 2 test results for Split-NN (Size 3, O\textus{3})}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\input{results/splits-500-10relu-seasonal-size9-level2-big/level1/test.tex}
+\caption{Level 2 test results for Split-NN (Size 9, O\textus{3})}
+\end{table}
 
 %\end{landscape}
 \end{document}
