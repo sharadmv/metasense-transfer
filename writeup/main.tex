@@ -219,9 +219,8 @@ The purpose of the split-NN model is that $s_{\theta_i}$ corrects for difference
 
 \begin{figure}
     \includegraphics[width=0.8\textwidth]{writeup/img/split-model.png}
-    \caption{Architecture of the split-NN model in deployment (testing).  Each air quality sensor has its own custom $s_{\theta_i}(x)$ that is intended to take the sensor's output ($x$) and normalize it ($u$) relative to the other sensors, so that it can be fed into the global model $c_\phi$.}
+    \caption{Architecture of the split-NN model in deployment (testing).  Each air quality sensor has a board-specific model $s_{\theta_i}(x)$ that normalizes a given sensor's output ($x$) to an intermediate representation from all sensors ($u$). The intermediate representation is combined with environmental data ($e$) and input to the global model $c_\phi$.}
     \label{fig:split-nn-deploy}
-    \todo{WGG: not clear that Board 2 - Board N should be in this figure.  Maybe grayed out?  No additional subscripts needed.}
 \end{figure}
 
 The split model can be trained efficiently with stochastic gradient descent. Specifically, we first collect $N$ data sets for each board $D_i = \{x^{(i)}, e^{(i)}, y^{(i)}\}_{i = 1}^N$. We ensure each of these data sets is the same size by sampling each with replacement to artificially match the largest data set. We then pool the data sets together into one data set from which we sample mini-batches. While each sensor-specific model $s_{\theta_i}$ is trained only on data collected by its sensor, the regression with the other $s_{\theta_i}$ sensor-specific models is designed to detect and correct its bias, outputting an intermediate representations $u$ that is normalized with the others.  The global calibration model is trained on the normalized data from all air quality sensors.
@@ -232,7 +231,7 @@ Although training this neural network will take longer than training one for a s
 
 \textbf{Calibrating a New Board without a Full Training.}  Field calibration is traditionally performed by colocating a sensor package with reference monitors and then training to match pollutant concentrations.  But, suppose we already had a fleet of low-cost sensor packages already deployed.  A simpler method not requiring coordination with regulatory agencies would be to colocate it with a calibrated sensor package and train a model to match its predicted pollutant levels. This risks compounding errors across models, however. 
 
-The split-NN model enables calibrating a new sensor package by colocating to match \textit{representation} instead of predictions~\citep{Goodfellow-et-al-2016}.  We propose calibrating sensor package $N+1$ to match the intermediate representation output of a colocated, previously-calibrated sensor package. Specifically, we train model $N + 1$ to minimize $L(u_N, u_{N + 1})$, or the loss between the two packages' intermediary outputs. These intermediate representations are designed to be robust to changes in location so training to match these representation so it is expected that it will result in a robust calibration model. We analyze this potential calibration technique by holding out a board from our data sets and training a split model. We then simulate calibrating the held out board by training a sensor model to match the representations produced by another board it was colocated with. We then use this new sensor model with the global calibration function to produce pollutant values. 
+The split-NN model enables calibrating a new sensor package by colocating to match \textit{representation} instead of predictions, as learned representations can often improve generalization in transfer learning problems~\citep{Goodfellow-et-al-2016}.  We propose calibrating sensor package $N+1$ to match the intermediate representation output of a colocated, previously-calibrated sensor package. Specifically, we train model $N + 1$ to minimize $L(u_N, u_{N + 1})$, or the loss between the two packages' intermediary outputs. These intermediate representations are designed to be robust to changes in location so training to match these representation so it is expected that it will result in a robust calibration model. We analyze this potential calibration technique by holding out a board from our data sets and training a split model. We then simulate calibrating the held out board by training a sensor model to match the representations produced by another board it was colocated with. We then use this new sensor model with the global calibration function to produce pollutant values. 
 
 %The split-NN offers a novel method to calibrate new boards. Suppose we have a set of $N$ calibrated boards and are presented with an uncalibrated $N + 1$-th board. The safest way to calibrate this new board would is always to colocate it with a ground-truth sensor and train a model.  This requirement, however, is potentially restrictive and expensive, as it necessitates deploying the sensor by an EPA or other reliable sensor. On the other hand, colocating with another low cost sensor is simple and cheap, but risks compounding the noise and error that already exist.
 
@@ -271,7 +270,7 @@ We evaluated a set of four baseline models described in Section~\ref{sec:calibra
 
 In the Level 0 and Level 3 benchmarks, the training and testing data distributions have explicit overlap, whereas in Level 1 and 2, there is no explicit overlap. We expect performance on Level 0 to be the best, as the training and testing distributions are identical.  We expect performance on Level 3 to be similar, due to the overlap in training and testing distributions. We expect performance on Level 1 to be the worst, as the training distribution is the narrowest and with no explicit overlap, whereas we expect performance on Level 2 to be between Level 1 and Level 3, for although there is no explicit overlap, the overall training distribution will be wider, forcing the models to be more general and possibly affording more implicit overlap.  Furthermore, we expect higher capacity models to overfit more to the training data set, and as a result, have the largest gap between Level 0 and Level 1. Thus, we expect linear regression to have more consistent performance across the benchmarks, albeit at relatively high error, followed by the 2-layer neural network, 4-layer neural network, and finally the random forest.
 
-We ran each benchmark across all possible permutations of location and sensor package, measuring six metrics: root mean squared error (rMSE), centered root mean squared error (crMSE), mean absolute error (MAE), the coefficient of variation of mean absolute error (CvMAE), mean bias error (MBE), and coefficient of determination ($R^2$). The results for MAE of the baseline models are plotted in Figure~\ref{fig:results-linear}.  Details can be explored further in Table~\ref{fig:six-errors-table} in Appendix~\ref{app:six-errors}.
+We ran each benchmark across all possible permutations of location and sensor package, measuring six metrics: root mean squared error (rMSE), centered root mean squared error (crMSE), mean absolute error (MAE), the coefficient of variation of mean absolute error (CvMAE), mean bias error (MBE), and coefficient of determination ($\textrm{R}^2$). The results for MAE of the baseline models are plotted in Figure~\ref{fig:results-linear}.  Details can be explored further in Appendix~\ref{sec:simpleresults}.
 
 \begin{figure}[t]
 \centering
@@ -398,7 +397,7 @@ A question that remains is to what degree overfitting or unique (non-overlapping
 \includegraphics[width=\textwidth]{\baselinedir/subu/error_density_absolute-humidity_shafter_O3.png}
 \caption{RF, trained at Shafter}
 \end{subfigure}
-\caption{Error density plots for O\textus{3} versus absolute humidity for both Linear Regression (LR) and Random Forest (RF) in a Level 1 benchmark.}
+\caption{Error density plots for O\textus{3} versus normalized absolute humidity for both Linear Regression (LR) and Random Forest (RF) in a Level 1 benchmark.}
 \label{fig:error-density}
 \end{figure}
 
@@ -410,25 +409,25 @@ To help reveal the value of calibrating multiple boards at once, we performed th
 
 Figure~\ref{fig:split-results-lrfe}a-b shows that the split-NN model on average has slightly lower MAE in the Level 1 benchmarks when compared to the random forest model. We see in and Figure~\ref{fig:split-results-lrfe}c-d that the gap widens with the Level 2 benchmark, indicating that the Split-NN model is able to better capitalize on the additional data. The results also support our hypothesis that we receive diminishing returns with additional data. 
 
-The marginal improvement seen in the Level 1 benchmarks has two possible causes.  One is that there is insufficient overlapping of the pollutant distributions across the sites, compromising the first-stage linear regression to correct bias.  The other is that the difference in behavior among sensors is non-linear.   The fact that using two rounds of data (Level 2) does better does much better suggests that lack of overlap in data distributions plays a role.  To gain further insight on this, we replaced the first stage linear regression with a full neural net.  .... Figure~\ref{fig:split-results-nnfe}
+The marginal improvement seen in the Level 1 benchmarks has two possible causes.  One possibility is that the difference in behavior between sensors is non-linear. To test, we implemented a full neural network at as the first stage. The results were comparable with a linear regression first stage with no significant improvement, suggesting that the relationship between the sensors is well represented by a linear model. The other possibility is that the pollution distributions have insufficient overlap across sites, compromising the first-stage linear regression to for correct bias. The fact that using two rounds of data (Level 2) does much better suggests that this lack of overlap is a likely culprit. 
 
 %We also find that training the split models on more locations as opposed to a wider range of time achieves marginally lower error, though both exhibit similar performance overall.
 
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-no2-location-level1-mae}
 \caption{Level 1 NO\textus{2}}
 \end{subfigure}
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-o3-location-level1-mae}
 \caption{Level 1 O\textus{3}}
 \end{subfigure}
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-no2-location-level2-mae}
 \caption{Level 2 NO\textus{2}}
 \end{subfigure}
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-o3-location-level2-mae}
 \caption{Level 2 O\textus{3}}
 \end{subfigure}
@@ -437,43 +436,46 @@ The marginal improvement seen in the Level 1 benchmarks has two possible causes.
 \end{figure}
 
 % Seasonal plots
-%\begin{subfigure}{0.45\textwidth}
+%\begin{subfigure}{0.35\textwidth}
 %\includegraphics[width=\textwidth]{results/split-no2-seasonal-mae}
 %\caption{Level 1 Seasonal Split-NN neural network results (NO\textus{2})}
 %\end{subfigure}
-%\begin{subfigure}{0.45\textwidth}
+%\begin{subfigure}{0.35\textwidth}
 %\includegraphics[width=\textwidth]{results/split-o3-seasonal-mae}
 %\caption{Level 1 Seasonal Split-NN neural network results (O\textus{3})}
 %\end{subfigure}
-%\begin{subfigure}{0.45\textwidth}
+%\begin{subfigure}{0.35\textwidth}
 %\includegraphics[width=\textwidth]{results/split-no2-seasonal-level2-mae}
 %\caption{Level 2 Seasonal Split-NN neural network results (NO\textus{2})}
 %\end{subfigure}
-%\begin{subfigure}{0.45\textwidth}
+%\begin{subfigure}{0.35\textwidth}
 %\includegraphics[width=\textwidth]{results/split-o3-seasonal-level2-mae}
 %\caption{Level 2 Seasonal Location Split-NN neural network results (O\textus{3})}
 %\end{subfigure}
+
+\iffalse
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-no2-location-level1-big-mae}
 \caption{Level 1 NO\textus{2}}
 \end{subfigure}
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-o3-location-level1-big-mae}
 \caption{Level 1 O\textus{3}}
 \end{subfigure}
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-no2-location-level2-big-mae}
 \caption{Level 2 NO\textus{2}}
 \end{subfigure}
-\begin{subfigure}{0.45\textwidth}
+\begin{subfigure}{0.35\textwidth}
 \includegraphics[width=\textwidth]{results/split-o3-location-level2-big-mae}
 \caption{Level 2 O\textus{3}}
 \end{subfigure}
-\caption{Results of evaluating the split-NN model with a linear regression first stage, compared against the RF model in both Level 1 and Level 2 comparisons. The split-NN model has a lower mean and median error in all conditions. Boxplots are pictured without outliers for clarity.}
+\caption{Results of evaluating the split-NN model with a neural network first stage, compared against the RF model in both Level 1 and Level 2 comparisons. The split-NN model has a lower mean and median error in all conditions. Boxplots are pictured without outliers for clarity.}
 \label{fig:split-results-nnfe}
 \end{figure}
+\fi
 
 \iffalse
 We also evaluated the calibration of a new sensor package using the split-NN approach. As described in Section~\ref{sec:split-nn}, rather than retraining a full calibration model when a new, uncalibrated sensor needs to be deployed, we can colocate it with an already-calibrated low-cost sensor. We then train a new sensor model for the new board, regressing to match the sensor model outputs from the colocated boards. Since the sensor model outputs intermediate values that are then fed into a global calibration model, we have effectively calibrated a new board just through the sensor model. Using this approach we find \todo{WGG: how?} that on average, \todo{WGG: is this additional error over doing it from scratch?  Sounds high.  Our new test will help here.} we incur 3.79 NO\textus{2} MAE and 6.07 O\textus{3} MAE.
@@ -481,7 +483,7 @@ We also evaluated the calibration of a new sensor package using the split-NN app
 
 
 %\begin{figure}
-%    \includegraphics[width=0.3\textwidth]{writeup/img/levels-retrain}
+%    \includegraphics[width=0.35\textwidth]{writeup/img/levels-retrain}
 %    \caption{Calibrating a new board $N + 1$}
 %\end{figure}
 
@@ -523,10 +525,9 @@ When we drilled down to investigate the contributors to error when changing loca
 
 We had expected that training at multiple sites would provide much better transferability, but the improvements were not substantial, suggesting that the high-capacity models were mostly improving due to implicit overlap in distributions and not actual generalization.  This suggests that calibration should be directed at capturing the widest conditions possible, for example using many field sites with varying conditions, so as to create an overlap between the distributions of training and use.  This recommendation is further supported by the observation that the Level 3 benchmarks performed nearly as well as the Level 0 benchmarks, in spite of carrying the load of a much wider distribution in the models.
 
-The split-NN approach provides a potentially economical approach to creating overlap in distributions since sensors can share their data for calibration.  That is, when calibrating multiple sensors, rather than colocating multiple sensors at a field site and rotating those sensors over time, it makes sense to distribute the sensors to as many field sites as possible to capture the widest distribution of conditions.  More study will be required to see how well the split-NN approach scales.
+The split-NN approach provides a potentially economical approach to creating overlap in distributions since sensors can share their data for calibration.  That is, when calibrating multiple sensors, rather than colocating multiple sensors at a field site and rotating those sensors over time, it makes sense to distribute the sensors to as many field sites as possible to capture the widest distribution of conditions. The split-NN method has the additional benefit of being able to train a calibration model for a sensor that has never been colocated with a reference instrument. By simply colocating an uncalibrated sensor with a calibrated sensor and training the sensor-specific model to match the intermediate output of the calibrated sensor, the uncalibrated sensor can leverage the same global calibration model. More study will be required to see how well the split-NN approach scales as the training data distribution increases and to determine the bounds on calibration without reference colocation.
 
-\todo{WGG: graphs don't show this: Location Test will help.} Only when we employed the split-NN technique did we get the expected results.  
-\todo{WGG: something about training a new sensor?}
+\todo{WGG: graphs don't show this: Location Test will help.} Only when we employed the split-NN technique did we get the expected results.
 
 %Considering these limitations, there are a number of recommendations drawn from the results of this study that may be useful for communities and citizens scientists interested in using low-cost sensors. 
 % 
@@ -906,16 +907,7 @@ In general, we expect Level 0 and Level 3 performance to be the best, as they in
 If a model's Level 1 and Level 2 error are close to Level 0 and Level 3, then the model transfers well. Otherwise, the model overfits to its location.
 
 
-These raw results are in \autoref{sec:simpleresults}. 
-We split results into training vs. testing
-results, where we expect train performance
-to be better than test.
-Overall, we see that random forests have the lowest Level 0 and Level 3 error. This is consistent with results we see in \citet{Zimmerman2018}. 
-We observe when comparing Level 1 error difference (Level 1 train minus Level 1 test), random forests suffer great
-drops in performance.
-This hints that RFs are overfitting to the training data, even if they
-report the lowest test error for Level 0 and Level 3.  See \autoref{fig:generalization} for 
-details.
+These raw results are in \autoref{sec:simpleresults}. We split results into training vs. testing results, where we expect train performance to be better than test. Overall, we see that random forests have the lowest Level 0 and Level 3 error. This is consistent with results we see in \citet{Zimmerman2018}. We observe when comparing Level 1 error difference (Level 1 train minus Level 1 test), random forests suffer great drops in performance. This hints that RFs are overfitting to the training data, even if they report the lowest test error for Level 0 and Level 3. See \autoref{fig:generalization} for details.
 
 \begin{figure}[H]
 \centering
@@ -1152,7 +1144,7 @@ the difference in performance between split-NN and the four models. In these plo
 
 \section{Raw Results for Baseline Calibration Models}
 \label{sec:simpleresults}
-The following the complete error results for the trained models across the various conditions.  In these tables, the modeling methods are labeled as MLR for multiple linear regression, NN-2 for 2-layer neural network, NN-4 for 4-layer neural network, and RF for random forest, as described in Section~\ref{sec:calibration-methods}.  Likewise, the error measures are labeled as MAE for mean absolute error, CvMAE for coefficient of variation of the mean absolute error, MBE for mean bias error, MSE for mean standard error, R\textasciicircum2 is the coefficient of determination, crMSE for centered root mean square error, and rMSE for root mean squared error.  The results are disaggregated by test and train sites, and averaged across the sensor packages.
+The following the complete error results for the trained models across the various conditions.  In these tables, the modeling methods are labeled as MLR for multiple linear regression, NN-2 for 2-layer neural network, NN-4 for 4-layer neural network, and RF for random forest, as described in Section~\ref{sec:calibration-methods}.  Likewise, the error measures are labeled as MAE for mean absolute error, CvMAE for coefficient of variation of the mean absolute error, MBE for mean bias error, MSE for mean standard error, $\textrm{R}^2$ is the coefficient of determination, crMSE for centered root mean square error, and rMSE for root mean squared error.  The results are disaggregated by test and train sites, and averaged across the sensor packages.
 
 \input{results/error_tables/train-level0-no2.tex}
 \input{results/error_tables/test-level0-no2.tex}
@@ -1173,442 +1165,7 @@ The following the complete error results for the trained models across the vario
 \input{results/error_tables/test-level3-no2.tex}
 \input{results/error_tables/train-level3-o3.tex}
 \input{results/error_tables/test-level3-o3.tex}
-
-\iffalse
-
-\subsection{Benchmarks for linear regression}
-\label{sec:results-lr}
-
-
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level0/train-no2.tex}
-\caption{Level 0 train results for linear regression (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level0/test-no2.tex}
-\caption{Level 0 test results for linear regression (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level0/train-o3.tex}
-\caption{Level 0 train results for linear regression (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level0/test-o3.tex}
-\caption{Level 0 test results for linear regression (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level1/train-no2.tex}
-\caption{Level 1 train results for linear regression (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level1/test-no2.tex}
-\caption{Level 1 test results for linear regression (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level1/train-o3.tex}
-\caption{Level 1 train results for linear regression (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level1/test-o3.tex}
-\caption{Level 1 test results for linear regression (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level2/train-no2.tex}
-\caption{Level 2 train results for linear regression (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level2/test-no2.tex}
-\caption{Level 2 test results for linear regression (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level2/train-o3.tex}
-\caption{Level 2 train results for linear regression (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level2/test-o3.tex}
-\caption{Level 2 test results for linear regression (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level3/train-no2.tex}
-\caption{Level 3 train results for linear regression (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level3/test-no2.tex}
-\caption{Level 3 test results for linear regression (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level3/train-o3.tex}
-\caption{Level 3 train results for linear regression (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/linear/level3/test-o3.tex}
-\caption{Level 3 test results for linear regression (O\textus{3})}
-\end{table}
-
-\subsection{Benchmarks for NN[2]}
-\label{sec:results-nn2}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level0/train-no2.tex}
-\caption{Level 0 train results for NN-2 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level0/test-no2.tex}
-\caption{Level 0 test results for NN-2 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level0/train-o3.tex}
-\caption{Level 0 train results for NN-2 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level0/test-o3.tex}
-\caption{Level 0 test results for NN-2 (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level1/train-no2.tex}
-\caption{Level 1 train results for NN-2 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level1/test-no2.tex}
-\caption{Level 1 test results for NN-2 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level1/train-o3.tex}
-\caption{Level 1 train results for NN-2 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level1/test-o3.tex}
-\caption{Level 1 test results for NN-2 (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level2/train-no2.tex}
-\caption{Level 2 train results for NN-2 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level2/test-no2.tex}
-\caption{Level 2 test results for NN-2 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level2/train-o3.tex}
-\caption{Level 2 train results for NN-2 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level2/test-o3.tex}
-\caption{Level 2 test results for NN-2 (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level3/train-no2.tex}
-\caption{Level 3 train results for NN-2 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level3/test-no2.tex}
-\caption{Level 3 test results for NN-2 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level3/train-o3.tex}
-\caption{Level 3 train results for NN-2 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-2/level3/test-o3.tex}
-\caption{Level 3 test results for NN-2 (O\textus{3})}
-\end{table}
-
-\subsection{Benchmarks for NN[4]}
-\label{sec:results-nn4}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level0/train-no2.tex}
-\caption{Level 0 train results for NN-4 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level0/test-no2.tex}
-\caption{Level 0 test results for NN-4 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level0/train-o3.tex}
-\caption{Level 0 train results for NN-4 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level0/test-o3.tex}
-\caption{Level 0 test results for NN-4 (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level1/train-no2.tex}
-\caption{Level 1 train results for NN-4 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level1/test-no2.tex}
-\caption{Level 1 test results for NN-4 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level1/train-o3.tex}
-\caption{Level 1 train results for NN-4 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level1/test-o3.tex}
-\caption{Level 1 test results for NN-4 (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level2/train-no2.tex}
-\caption{Level 2 train results for NN-4 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level2/test-no2.tex}
-\caption{Level 2 test results for NN-4 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level2/train-o3.tex}
-\caption{Level 2 train results for NN-4 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level2/test-o3.tex}
-\caption{Level 2 test results for NN-4 (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level3/train-no2.tex}
-\caption{Level 3 train results for NN-4 (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level3/test-no2.tex}
-\caption{Level 3 test results for NN-4 (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level3/train-o3.tex}
-\caption{Level 3 train results for NN-4 (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/nn-4/level3/test-o3.tex}
-\caption{Level 3 test results for NN-4 (O\textus{3})}
-\end{table}
-
-\subsection{Benchmarks for Random Forest}
-\label{sec:results-nn4}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level0/train-no2.tex}
-\caption{Level 0 train results for random forest (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level0/test-no2.tex}
-\caption{Level 0 test results for random forest (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level0/train-o3.tex}
-\caption{Level 0 train results for random forest (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level0/test-o3.tex}
-\caption{Level 0 test results for random forest (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level1/train-no2.tex}
-\caption{Level 1 train results for random forest (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level1/test-no2.tex}
-\caption{Level 1 test results for random forest (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level1/train-o3.tex}
-\caption{Level 1 train results for random forest (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level1/test-o3.tex}
-\caption{Level 1 test results for random forest (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level2/train-no2.tex}
-\caption{Level 2 train results for random forest (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level2/test-no2.tex}
-\caption{Level 2 test results for random forest (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level2/train-o3.tex}
-\caption{Level 2 train results for random forest (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level2/test-o3.tex}
-\caption{Level 2 test results for random forest (O\textus{3})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level3/train-no2.tex}
-\caption{Level 3 train results for random forest (NO\textus{2})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level3/test-no2.tex}
-\caption{Level 3 test results for random forest (NO\textus{2})}
-\end{table}
-
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level3/train-o3.tex}
-\caption{Level 3 train results for random forest (O\textus{3})}
-\end{table}
-\begin{table}[H]
-\centering
-\scriptsize
-\input{\baselinedir/subu/level3/test-o3.tex}
-\caption{Level 3 test results for random forest (O\textus{3})}
-\end{table}
-
-\fi
-
-%\begin{landscape}
+\clearpage
 
 %\todo{WGG: should we continue reporting Split NN as a comparison, or just include the raw results like the others?  Tables are very long, too long for the page, BTW.}
 \section{Split Neural Network results}
@@ -1640,6 +1197,7 @@ The following the complete error results for the trained models across the vario
 \input{results/splits-500-10relu-seasonal-size9-level2-big/level1/test.tex}
 \caption{Level 2 test results for Split-NN (Size 9, O\textus{3})}
 \end{table}
+
 
 %\end{landscape}
 \end{document}
