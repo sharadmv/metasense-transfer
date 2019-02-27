@@ -20,9 +20,9 @@ def parse_args():
     argparser.add_argument('experiment')
     argparser.add_argument('name')
     argparser.add_argument('--seed', type=int, default=0)
-    argparser.add_argument('--location', default=None, type=str)
-    argparser.add_argument('--round', default=None, type=str)
-    argparser.add_argument('--board', default=None, type=str)
+    argparser.add_argument('--location', default="", type=str)
+    argparser.add_argument('--round', default="", type=str)
+    argparser.add_argument('--board', default="", type=str)
     argparser.add_argument('--dim', type=int, default=3)
     argparser.add_argument('--batch-size', type=int, default=10)
     argparser.add_argument('--hidden-size', type=int, default=100)
@@ -33,6 +33,8 @@ def parse_args():
 
 def train(out_dir, dim, seed, load_model=None):
     out_path = out_dir / 'models'
+    if not (out_path).exists():
+        out_path.mkdir()
     boards = {}
     for round in DATA:
         for location in DATA[round]:
@@ -73,19 +75,19 @@ def train(out_dir, dim, seed, load_model=None):
             data[i] = d.append(d.sample(max_size - d.shape[0], replace=True))
     data = pd.concat(data)
     def cb(model):
-        with fs.open(str(out_path / 'model_latest.pkl'), 'wb') as fp:
+        with open(str(out_path / 'model_latest.pkl'), 'wb') as fp:
             joblib.dump(split_model, fp)
     print("Total data size:", data.shape)
     split_model.fit(data[sensor_features], data[env_features], data['board'], data[Y_features], dump_every=(out_dir / 'models' / 'model_latest.pkl', 1000), n_iters=args.num_iters, cb=cb)
-    with fs.open(str(out_path / 'model.pkl'), 'wb') as fp:
+    with open(str(out_path / 'model.pkl'), 'wb') as fp:
         joblib.dump(split_model, fp)
 
 if __name__ == "__main__":
     args = parse_args()
-    fs = s3fs.S3FileSystem(anon=False)
-    out_dir = Path(BUCKET_NAME) / args.experiment / args.name
-    ignore_round = list(map(int, args.round.split(",")))
-    ignore_location = args.location.split(",")
-    ignore_board = list(map(int, args.board.split(",")))
-    ignore = set(zip(ignore_round, ignore_location, ignore_board))
+    out_dir = Path('out/') / args.experiment / args.name
+    # ignore_round = list(map(int, args.round.split(",")))
+    # ignore_location = args.location.split(",")
+    # ignore_board = list(map(int, args.board.split(",")))
+    # ignore = set(zip(ignore_round, ignore_location, ignore_board))
+    ignore = set()
     train(out_dir, args.dim, args.seed, load_model=args.load)

@@ -73,20 +73,20 @@ class SplitModel(Model):
                 })
                 writer.add_summary(summary, i)
             if i % 10000 == 0:
-                score = self.score(sensor_valid, env_valid, board_valid, y_valid)
-                if score[0].mean() < best[1]:
+                score, _ = self.score(sensor_valid, env_valid, board_valid, y_valid)
+                if score['MAE'].mean() < best[1]:
                     best = (
-                        self.get_weights(), score[0].mean()
+                        self.get_weights(), score['MAE'].mean()
                     )
-                    print("New Best:", best[1], score)
+                    print("New Best:", best[1], score['MAE'])
             if i % 10000 == 0 and dump_every is not None:
                 cb(self)
-        score = self.score(sensor_valid, env_valid, board_valid, y_valid)
-        if score[0].mean() < best[1]:
+        score, _ = self.score(sensor_valid, env_valid, board_valid, y_valid)
+        if score['MAE'].mean() < best[1]:
             best = (
-                self.get_weights(), score[0].mean()
+                self.get_weights(), score['MAE'].mean()
             )
-            print("New Best:", best[1], score)
+            print("New Best:", best[1], score['MAE'])
         self.set_weights(best[0])
         return self
 

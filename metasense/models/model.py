@@ -18,7 +18,6 @@ class Model(object, metaclass=ABCMeta):
     def score(self, *args):
         y = args[-1]
         preds = self.predict(*args[:-1])
-        y = y.as_matrix()
         return self._score(y, preds), preds
 
     def _score(self, y_true, y_pred):
